@@ -298,6 +298,20 @@ function getActiveDoctors(token) {
     .sort();
 }
 
+function stringValue(v) {
+  if (v === null || v === undefined) return '';
+  if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return String(v);
+}
+
+function copyAllFields(row, fields) {
+  var out = {};
+  for (var i = 0; i < fields.length; i++) {
+    out[fields[i]] = stringValue(row[fields[i]]);
+  }
+  return out;
+}
+
 function getData(token, doctorFilter, dateFilter) {
   var user = validateToken(token);
   var today = getTodayString();
@@ -314,20 +328,26 @@ function getData(token, doctorFilter, dateFilter) {
     throw new Error('Not authorized');
   }
 
+  var appointmentFields = [
+    'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
+    'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
+    'Token_Number', 'Status', 'Timestamp'
+  ];
+
+  var patientFields = [
+    'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
+    'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
+    'Token_Number', 'Temperature_Celsius', 'Blood_Pressure_mmHg',
+    'Heart_Rate_BPM', 'SpO2', 'Status', 'Doctor_Instructions',
+    'Follow_Up_Date', 'Signature'
+  ];
+
   var appointments = readSheetRows('Appointments').filter(function(r) {
     return String(r.Status || '').trim() === 'Scheduled' &&
            String(r.Date || '').trim() === filterDate &&
            (allDoctors || doctorMatches(r.Doctor_Name, filter));
   }).map(function(r) {
-    return {
-      Patient_ID: String(r.Patient_ID || ''),
-      Full_Name: String(r.Full_Name || ''),
-      Token_Number: r.Token_Number != null ? String(r.Token_Number) : '',
-      Doctor_Name: String(r.Doctor_Name || ''),
-      Primary_Symptom: String(r.Primary_Symptom || ''),
-      Visit_Type: String(r.Visit_Type || ''),
-      Date: String(r.Date || '')
-    };
+    return copyAllFields(r, appointmentFields);
   }).sort(function(a, b) {
     return (Number(a.Token_Number) || 0) - (Number(b.Token_Number) || 0);
   });
@@ -337,19 +357,7 @@ function getData(token, doctorFilter, dateFilter) {
            String(r.Date || '').trim() === filterDate &&
            (allDoctors || doctorMatches(r.Doctor_Name, filter));
   }).map(function(r) {
-    return {
-      Patient_ID: String(r.Patient_ID || ''),
-      Full_Name: String(r.Full_Name || ''),
-      Token_Number: r.Token_Number != null ? String(r.Token_Number) : '',
-      Doctor_Name: String(r.Doctor_Name || ''),
-      Primary_Symptom: String(r.Primary_Symptom || ''),
-      Temperature_Celsius: String(r.Temperature_Celsius || ''),
-      Blood_Pressure_mmHg: String(r.Blood_Pressure_mmHg || ''),
-      Heart_Rate_BPM: String(r.Heart_Rate_BPM || ''),
-      SpO2: String(r.SpO2 || ''),
-      Doctor_Instructions: String(r.Doctor_Instructions || ''),
-      Follow_Up_Date: String(r.Follow_Up_Date || '')
-    };
+    return copyAllFields(r, patientFields);
   }).sort(function(a, b) {
     return (Number(a.Token_Number) || 0) - (Number(b.Token_Number) || 0);
   });
@@ -361,16 +369,7 @@ function getData(token, doctorFilter, dateFilter) {
              String(r.Date || '').trim() === filterDate &&
              (allDoctors || doctorMatches(r.Doctor_Name, filter));
     }).map(function(r) {
-      return {
-        Patient_ID: String(r.Patient_ID || ''),
-        Full_Name: String(r.Full_Name || ''),
-        Token_Number: r.Token_Number != null ? String(r.Token_Number) : '',
-        Doctor_Name: String(r.Doctor_Name || ''),
-        Primary_Symptom: String(r.Primary_Symptom || ''),
-        Doctor_Instructions: String(r.Doctor_Instructions || ''),
-        Follow_Up_Date: String(r.Follow_Up_Date || ''),
-        Signature: String(r.Signature || '')
-      };
+      return copyAllFields(r, patientFields);
     }).sort(function(a, b) {
       return (Number(a.Token_Number) || 0) - (Number(b.Token_Number) || 0);
     });

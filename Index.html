@@ -25,6 +25,11 @@
     .item strong { font-size: 15px; color: #222; }
     .item small { display: block; color: #666; margin-top: 3px; font-size: 12px; }
     .item .meta { margin-top: 6px; font-size: 12px; color: #555; }
+    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; font-size: 12px; }
+    .details div { background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #eee; }
+    .details div.full { grid-column: 1 / -1; }
+    .details .label { font-weight: 600; color: #555; display: block; font-size: 11px; text-transform: capitalize; }
+    .details .value { color: #222; word-break: break-word; }
     .item button { margin-top: 10px; background: #4CAF50; color: white; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
     .item button:hover { background: #45a049; }
     .empty { color: #999; font-size: 13px; padding: 10px 0; }
@@ -148,6 +153,47 @@
         .getData('', '');
     }
 
+    const appointmentDisplayOrder = [
+      'Token_Number', 'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
+      'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID', 'Status', 'Timestamp'
+    ];
+
+    const patientDisplayOrder = [
+      'Token_Number', 'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
+      'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
+      'Temperature_Celsius', 'Blood_Pressure_mmHg', 'Heart_Rate_BPM', 'SpO2',
+      'Status', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature'
+    ];
+
+    const fullWidthFields = ['Address', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature'];
+
+    const displayNames = {
+      Patient_ID: 'Patient ID',
+      Full_Name: 'Full Name',
+      Phone_Number: 'Phone Number',
+      Primary_Symptom: 'Primary Symptom',
+      Doctor_Name: 'Doctor',
+      Chat_ID: 'Chat ID',
+      Visit_Type: 'Visit Type',
+      Token_Number: 'Token Number',
+      Temperature_Celsius: 'Temperature (C)',
+      Blood_Pressure_mmHg: 'Blood Pressure (mmHg)',
+      Heart_Rate_BPM: 'Heart Rate (BPM)',
+      SpO2: 'SpO2 (%)',
+      Doctor_Instructions: 'Doctor Instructions',
+      Follow_Up_Date: 'Follow-up Date'
+    };
+
+    function renderDetails(item, fields) {
+      return '<div class="details">' + fields.map(field => {
+        const raw = item[field];
+        if (raw === '' || raw === null || raw === undefined) return '';
+        const label = displayNames[field] || field.replace(/_/g, ' ');
+        const cls = fullWidthFields.includes(field) ? ' class="full"' : '';
+        return `<div${cls}><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(raw)}</span></div>`;
+      }).join('') + '</div>';
+    }
+
     function renderDoctorData(data) {
       const statusEl = document.querySelector('.loading');
       if (statusEl) statusEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
@@ -157,27 +203,12 @@
       if (!appContainer || !checkedContainer) return;
 
       appContainer.innerHTML = data.appointments.length
-        ? data.appointments.map(p => `
-          <div class="item">
-            <strong>${escapeHtml(p.Token_Number ? '#' + p.Token_Number + ' ' : '')}${escapeHtml(p.Full_Name)}</strong>
-            <small>Doctor: ${escapeHtml(p.Doctor_Name)}</small>
-            <small>Symptom: ${escapeHtml(p.Primary_Symptom)}</small>
-            <small>Visit Type: ${escapeHtml(p.Visit_Type)}</small>
-          </div>
-        `).join('')
+        ? data.appointments.map(p => `<div class="item">${renderDetails(p, appointmentDisplayOrder)}</div>`).join('')
         : '<div class="empty">No scheduled appointments for today.</div>';
 
       window.checkedInPatients = data.checkedIn;
       checkedContainer.innerHTML = data.checkedIn.length
-        ? data.checkedIn.map((p, i) => `
-          <div class="item" data-idx="${i}">
-            <strong>${escapeHtml(p.Token_Number ? '#' + p.Token_Number + ' ' : '')}${escapeHtml(p.Full_Name)}</strong>
-            <small>Doctor: ${escapeHtml(p.Doctor_Name)}</small>
-            <small>Symptom: ${escapeHtml(p.Primary_Symptom)}</small>
-            <div class="meta">Vitals: ${escapeHtml(p.Temperature_Celsius || '-')}, ${escapeHtml(p.Blood_Pressure_mmHg || '-')}, HR ${escapeHtml(p.Heart_Rate_BPM || '-')}, SpO2 ${escapeHtml(p.SpO2 || '-')}</div>
-            <button onclick="openCompleteForm(${i})">Complete</button>
-          </div>
-        `).join('')
+        ? data.checkedIn.map((p, i) => `<div class="item" data-idx="${i}">${renderDetails(p, patientDisplayOrder)}<button onclick="openCompleteForm(${i})">Complete</button></div>`).join('')
         : '<div class="empty">No checked-in patients for today.</div>';
     }
 
@@ -363,9 +394,9 @@
       $('countCheckedIn').textContent = data.checkedIn.length;
       $('countCompleted').textContent = data.completed.length;
 
-      $('adminAppointments').innerHTML = renderTable(data.appointments, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Visit_Type']);
-      $('adminCheckedIn').innerHTML = renderTable(data.checkedIn, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Temperature_Celsius', 'Blood_Pressure_mmHg', 'Heart_Rate_BPM', 'SpO2']);
-      $('adminCompleted').innerHTML = renderTable(data.completed, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature']);
+      $('adminAppointments').innerHTML = renderTable(data.appointments, appointmentDisplayOrder);
+      $('adminCheckedIn').innerHTML = renderTable(data.checkedIn, patientDisplayOrder);
+      $('adminCompleted').innerHTML = renderTable(data.completed, patientDisplayOrder);
     }
 
     function renderTable(rows, columns) {

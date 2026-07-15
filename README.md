@@ -2,10 +2,10 @@
 
 This repo now contains two versions:
 
-1. **`web/`** - New **Next.js + Supabase** dashboard with real **login/sign-up**, role-based access, and the data stored in Supabase. This is the version being built now.
-2. **Google Apps Script version** below - The earlier single-file `Code.gs` + `Index.html` dashboard using Google Sheets. Kept here for reference.
+1. **`web/`** - **Next.js + Supabase** dashboard with login/sign-up and role-based access.
+2. **Google Apps Script version** in `Code.gs` + `Index.html` below - a Web App using Google Sheets, with doctor/admin views, signature pad, and full patient data display.
 
-> You are switching to Supabase. Follow the `web/README.md` for the new setup.
+> For the Apps Script demo, copy `Code.gs` and `Index.html` directly into your Apps Script project. The embedded code further down this README may be outdated.
 
 ---
 
@@ -38,13 +38,15 @@ Make sure your spreadsheet has these tabs with these exact column headers.
 
 ### `Appointments`
 
-`Patient_ID`, `Full_Name`, `Token_Number`, `Doctor_Name`, `Primary_Symptom`, `Visit_Type`, `Status`, `Date`
+All of these columns are read and displayed in the dashboard:
+
+`Patient_ID`, `Full_Name`, `Age`, `Sex`, `Phone_Number`, `Address`, `Primary_Symptom`, `Doctor_Name`, `Date`, `Visit_Type`, `Chat_ID`, `Token_Number`, `Status`, `Timestamp`
 
 ### `Patients`
 
-Add a new `Signature` column at the end if it does not exist:
+All of these columns are read and displayed in the dashboard (add `Signature` at the end if it does not exist):
 
-`Patient_ID`, `Full_Name`, `Token_Number`, `Doctor_Name`, `Primary_Symptom`, `Temperature_Celsius`, `Blood_Pressure_mmHg`, `Heart_Rate_BPM`, `SpO2`, `Status`, `Date`, `Doctor_Instructions`, `Follow_Up_Date`, `Signature`
+`Patient_ID`, `Full_Name`, `Age`, `Sex`, `Phone_Number`, `Address`, `Primary_Symptom`, `Doctor_Name`, `Date`, `Visit_Type`, `Chat_ID`, `Token_Number`, `Temperature_Celsius`, `Blood_Pressure_mmHg`, `Heart_Rate_BPM`, `SpO2`, `Status`, `Doctor_Instructions`, `Follow_Up_Date`, `Signature`
 
 ### `Live_Queue`
 
