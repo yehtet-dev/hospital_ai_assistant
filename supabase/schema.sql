@@ -1,18 +1,7 @@
 -- Smart Clinic Supabase schema
 -- Run this in the Supabase SQL Editor.
 
--- Profiles: one row per authenticated user, linked to auth.users.
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
-  full_name text,
-  role text not null check (role in ('admin', 'doctor')),
-  doctor_id uuid references public.doctors(id) on delete set null,
-  status text not null default 'pending' check (status in ('pending', 'active', 'inactive')),
-  created_at timestamptz default now()
-);
-
--- Doctors
+-- 1. Doctors (must exist before profiles/appointments/patients/queues reference it)
 create table if not exists public.doctors (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -26,7 +15,18 @@ create table if not exists public.doctors (
   created_at timestamptz default now()
 );
 
--- Appointments (kept in sync from n8n/registration)
+-- 2. Profiles: one row per authenticated user, linked to auth.users.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  full_name text,
+  role text not null check (role in ('admin', 'doctor')),
+  doctor_id uuid references public.doctors(id) on delete set null,
+  status text not null default 'pending' check (status in ('pending', 'active', 'inactive')),
+  created_at timestamptz default now()
+);
+
+-- 3. Appointments (kept in sync from n8n/registration)
 create table if not exists public.appointments (
   id uuid primary key default gen_random_uuid(),
   patient_id text not null,
@@ -41,7 +41,7 @@ create table if not exists public.appointments (
   created_at timestamptz default now()
 );
 
--- Patients / checked-in queue
+-- 4. Patients / checked-in queue
 create table if not exists public.patients (
   id uuid primary key default gen_random_uuid(),
   patient_id text not null,
@@ -61,7 +61,7 @@ create table if not exists public.patients (
   created_at timestamptz default now()
 );
 
--- Live queue per doctor per day
+-- 5. Live queue per doctor per day
 create table if not exists public.queues (
   id uuid primary key default gen_random_uuid(),
   doctor_id uuid references public.doctors(id),
@@ -84,7 +84,7 @@ create policy "Doctors are readable by everyone"
   to anon, authenticated
   using (true);
 
--- Profiles: users can read own profile; admins can read all
+-- Profiles: users can read/update own profile; admins can read/update all
 create policy "Users read own profile"
   on public.profiles
   for select
