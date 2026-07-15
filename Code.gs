@@ -99,6 +99,41 @@ function doctorMatches(rowDoctor, filter) {
   return false;
 }
 
+function getUser() {
+  var email = Session.getActiveUser().getEmail();
+  if (!email) {
+    return { email: '', name: '', role: 'none', doctorName: '' };
+  }
+  var normalized = normalizeEmail(email);
+
+  try {
+    var admins = readSheetRows('Admins');
+    for (var i = 0; i < admins.length; i++) {
+      if (normalizeEmail(admins[i].Email) === normalized) {
+        var adminStatus = String(admins[i].Status || '').trim().toLowerCase();
+        if (adminStatus === 'active' || adminStatus === '') {
+          return { email: email, name: String(admins[i].Name || ''), role: 'admin', doctorName: '' };
+        }
+      }
+    }
+  } catch (e) { /* Admins sheet may not exist yet */ }
+
+  try {
+    var doctors = readSheetRows('Doctors');
+    for (var j = 0; j < doctors.length; j++) {
+      if (normalizeEmail(doctors[j].Email) === normalized) {
+        var doctorStatus = String(doctors[j].Status || '').trim().toLowerCase();
+        if (doctorStatus === 'active' || doctorStatus === '') {
+          var doctorName = String(doctors[j].Doctor_Name || '');
+          return { email: email, name: doctorName, role: 'doctor', doctorName: doctorName };
+        }
+      }
+    }
+  } catch (e) { /* Doctors sheet may not exist yet */ }
+
+  return { email: email, name: '', role: 'none', doctorName: '' };
+}
+
 /* ---------- Auth helpers ---------- */
 
 function getSalt() {
@@ -286,8 +321,8 @@ function getCurrentUser(token) {
 
 /* ---------- Dashboard data ---------- */
 
-function getActiveDoctors(token) {
-  validateToken(token);
+function getActiveDoctors() {
+  getUser();
   return readSheetRows('Doctors')
     .filter(function(r) {
       var status = String(r.Status || '').trim().toLowerCase();
@@ -312,8 +347,8 @@ function copyAllFields(row, fields) {
   return out;
 }
 
-function getData(token, doctorFilter, dateFilter) {
-  var user = validateToken(token);
+function getData(doctorFilter, dateFilter) {
+  var user = getUser();
   var today = getTodayString();
   var filter = '';
   var allDoctors = false;
@@ -392,8 +427,8 @@ function getPatientRow(patientId) {
   return rows.length ? rows[0] : null;
 }
 
-function completePatient(token, patientId, instructions, followUpDate, signature) {
-  var user = validateToken(token);
+function completePatient(patientId, instructions, followUpDate, signature) {
+  var user = getUser();
   if (user.role !== 'doctor') throw new Error('Only doctors can complete patients');
 
   var patient = getPatientRow(patientId);
@@ -435,13 +470,13 @@ function completePatient(token, patientId, instructions, followUpDate, signature
 /* ---------- Admin management ---------- */
 
 function requireAdmin(token) {
-  var user = validateToken(token);
+  var user = getUser();
   if (user.role !== 'admin') throw new Error('Admin access required');
   return user;
 }
 
-function getAllDoctors(token) {
-  requireAdmin(token);
+function getAllDoctors() {
+  requireAdmin();
   return readSheetRows('Doctors').map(function(r) {
     return {
       Doctor_Name: String(r.Doctor_Name || ''),
@@ -452,8 +487,8 @@ function getAllDoctors(token) {
   });
 }
 
-function updateDoctor(token, doctorName, email, status) {
-  requireAdmin(token);
+function updateDoctor(doctorName, email, status) {
+  requireAdmin();
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Doctors');
@@ -476,13 +511,13 @@ function updateDoctor(token, doctorName, email, status) {
   throw new Error('Doctor not found');
 }
 
-function getUsers(token) {
-  requireAdmin(token);
+function getUsers() {
+  requireAdmin();
   return readUsers();
 }
 
-function updateUserStatus(token, email, status) {
-  requireAdmin(token);
+function updateUserStatus(email, status) {
+  requireAdmin();
   if (!email) throw new Error('Email required');
   if (updateUserStatusInSheet(email, status)) {
     return { success: true, email: email, status: status };
@@ -490,8 +525,8 @@ function updateUserStatus(token, email, status) {
   throw new Error('User not found');
 }
 
-function updateUserRole(token, email, role, doctorName) {
-  requireAdmin(token);
+function updateUserRole(email, role, doctorName) {
+  requireAdmin();
   if (!email) throw new Error('Email required');
   role = String(role || '').toLowerCase().trim();
   if (role !== 'admin' && role !== 'doctor') throw new Error('Role must be admin or doctor');
@@ -509,8 +544,8 @@ function updateUserRole(token, email, role, doctorName) {
   throw new Error('User not found');
 }
 
-function deleteUser(token, email) {
-  requireAdmin(token);
+function deleteUser(email) {
+  requireAdmin();
   if (!email) throw new Error('Email required');
   if (deleteUserFromSheet(email)) {
     return { success: true, email: email };
@@ -518,8 +553,8 @@ function deleteUser(token, email) {
   throw new Error('User not found');
 }
 
-function resetPassword(token, email, newPassword) {
-  requireAdmin(token);
+function resetPassword(email, newPassword) {
+  requireAdmin();
   if (!email || !newPassword) throw new Error('Email and new password required');
   if (newPassword.length < 6) throw new Error('Password must be at least 6 characters');
 
@@ -532,4 +567,77 @@ function resetPassword(token, email, newPassword) {
     }
   }
   throw new Error('User not found');
+}
+
+/* ---------- Admins sheet helpers ---------- */
+
+function ensureAdminsSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Admins');
+  if (!sheet) {
+    sheet = ss.insertSheet('Admins');
+    sheet.appendRow(['Email', 'Name', 'Status']);
+  }
+  return sheet;
+}
+
+function readAdmins() {
+  try {
+    return readSheetRows('Admins');
+  } catch (e) {
+    ensureAdminsSheet();
+    return readSheetRows('Admins');
+  }
+}
+
+function getAdmins() {
+  requireAdmin();
+  return readAdmins();
+}
+
+function saveAdmin(email, name, status) {
+  requireAdmin();
+  if (!email) throw new Error('Email is required');
+
+  var sheet = ensureAdminsSheet();
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(function(h) { return String(h).trim(); });
+  var emailIdx = findColumnIndex(headers, 'Email');
+  var nameIdx = findColumnIndex(headers, 'Name');
+  var statusIdx = findColumnIndex(headers, 'Status');
+  if (emailIdx < 0) throw new Error('Email column not found in Admins sheet');
+
+  var normalized = normalizeEmail(email);
+  for (var i = 1; i < data.length; i++) {
+    if (normalizeEmail(data[i][emailIdx]) === normalized) {
+      if (nameIdx >= 0) sheet.getRange(i + 1, nameIdx + 1).setValue(String(name || ''));
+      if (statusIdx >= 0) sheet.getRange(i + 1, statusIdx + 1).setValue(String(status || 'Active'));
+      return { success: true, email: email, name: name, status: status };
+    }
+  }
+
+  var row = [];
+  for (var j = 0; j < headers.length; j++) {
+    if (j === emailIdx) row.push(email);
+    else if (j === nameIdx) row.push(String(name || ''));
+    else if (j === statusIdx) row.push(String(status || 'Active'));
+    else row.push('');
+  }
+  sheet.appendRow(row);
+  return { success: true, email: email, name: name, status: status };
+}
+
+function removeAdmin(email) {
+  requireAdmin();
+  if (!email) throw new Error('Email is required');
+
+  var sheet = ensureAdminsSheet();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (normalizeEmail(data[i][0]) === normalizeEmail(email)) {
+      sheet.deleteRow(i + 1);
+      return { success: true, email: email };
+    }
+  }
+  throw new Error('Admin not found');
 }
