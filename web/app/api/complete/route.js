@@ -1,7 +1,25 @@
+import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
+  const authSupabase = createClient();
+  const { data: { user } } = await authSupabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { data: profile } = await authSupabase
+    .from('profiles')
+    .select('role, doctor_id, status')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || profile.status !== 'active') {
+    return NextResponse.json({ error: 'Account not active' }, { status: 403 });
+  }
+
   const supabase = createServiceRoleClient();
 
   try {
@@ -11,8 +29,27 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Patient ID required' }, { status: 400 });
     }
 
+    // Fetch the patient first to check ownership
+    const { data: patient, error: findError } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('id', patientId)
+      .single();
+
+    if (findError || !patient) {
+      return NextResponse.json({ error: findError?.message || 'Patient not found' }, { status: 404 });
+    }
+
+    if (profile.role === 'doctor' && patient.doctor_id !== profile.doctor_id) {
+      return NextResponse.json({ error: 'You can only complete your own patients' }, { status: 403 });
+    }
+
+    if (profile.role !== 'doctor' && profile.role !== 'admin') {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
+    }
+
     // Mark patient completed
-    const { data: patient, error: patientError } = await supabase
+    const { error: updateError } = await supabase
       .from('patients')
       .update({
         status: 'completed',
@@ -20,13 +57,9 @@ export async function POST(request) {
         follow_up_date: followUpDate || null,
         signature,
       })
-      .eq('id', patientId)
-      .select('*, doctors(name)')
-      .single();
+      .eq('id', patientId);
 
-    if (patientError || !patient) {
-      return NextResponse.json({ error: patientError?.message || 'Patient not found' }, { status: 404 });
-    }
+    if (updateError) throw updateError;
 
     // Advance queue
     await supabase
