@@ -133,7 +133,7 @@ export function AdminDashboard({ user, doctors }) {
             <tr key={row.id}>
               {columns.map((col) => {
                 const val = row[col];
-                if (col === 'Signature' && val) {
+                if (col === 'signature' && val) {
                   return (
                     <td key={col}>
                       <a href={val} target="_blank" rel="noreferrer">
@@ -239,7 +239,7 @@ export function AdminDashboard({ user, doctors }) {
               'primary_symptom',
               'doctor_instructions',
               'follow_up_date',
-              'Signature',
+              'signature',
             ])}
           </div>
         </>
