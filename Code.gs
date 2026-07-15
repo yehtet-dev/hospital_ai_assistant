@@ -373,7 +373,7 @@ function getData(doctorFilter, dateFilter) {
     'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
     'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
     'Token_Number', 'Temperature_Celsius', 'Blood_Pressure_mmHg',
-    'Heart_Rate_BPM', 'SpO2', 'Status', 'Doctor_Instructions',
+    'Heart_Rate_BPM', 'SpO2', 'Nurse_Name', 'Status', 'Doctor_Instructions',
     'Follow_Up_Date', 'Signature'
   ];
 

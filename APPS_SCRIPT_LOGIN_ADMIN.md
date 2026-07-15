@@ -1,6 +1,6 @@
 # Smart Clinic - Login/Admin Dashboard (Google Apps Script Web App)
 
-This is the **login/admin** version of the Smart Clinic dashboard. It uses the user's signed-in Google account email to decide the role (doctor or admin) and shows all patient/appointment data.
+This is the **login/admin** version of the Smart Clinic dashboard. It uses the signed-in Google account email to decide the role (doctor or admin) and shows all patient/appointment data.
 
 ## Features
 
@@ -17,7 +17,9 @@ This is the **login/admin** version of the Smart Clinic dashboard. It uses the u
 
 ### `Patients`
 
-`Patient_ID`, `Full_Name`, `Age`, `Sex`, `Phone_Number`, `Address`, `Primary_Symptom`, `Doctor_Name`, `Date`, `Visit_Type`, `Chat_ID`, `Token_Number`, `Temperature_Celsius`, `Blood_Pressure_mmHg`, `Heart_Rate_BPM`, `SpO2`, `Status`, `Doctor_Instructions`, `Follow_Up_Date`, `Signature`
+`Patient_ID`, `Full_Name`, `Age`, `Sex`, `Phone_Number`, `Address`, `Primary_Symptom`, `Doctor_Name`, `Date`, `Visit_Type`, `Chat_ID`, `Token_Number`, `Temperature_Celsius`, `Blood_Pressure_mmHg`, `Heart_Rate_BPM`, `SpO2`, `Nurse_Name`, `Status`, `Doctor_Instructions`, `Follow_Up_Date`, `Signature`
+
+> If your `Patients` sheet is missing `Nurse_Name`, `Doctor_Instructions`, `Follow_Up_Date`, or `Signature` columns, add them now (exact spelling). `Doctor_Instructions`, `Follow_Up_Date`, and `Signature` are editable from the doctor dashboard.
 
 ### `Doctors`
 
@@ -431,7 +433,7 @@ function getData(doctorFilter, dateFilter) {
     'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
     'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
     'Token_Number', 'Temperature_Celsius', 'Blood_Pressure_mmHg',
-    'Heart_Rate_BPM', 'SpO2', 'Status', 'Doctor_Instructions',
+    'Heart_Rate_BPM', 'SpO2', 'Nurse_Name', 'Status', 'Doctor_Instructions',
     'Follow_Up_Date', 'Signature'
   ];
 
@@ -871,7 +873,7 @@ function removeAdmin(email) {
       'Token_Number', 'Patient_ID', 'Full_Name', 'Age', 'Sex', 'Phone_Number', 'Address',
       'Primary_Symptom', 'Doctor_Name', 'Date', 'Visit_Type', 'Chat_ID',
       'Temperature_Celsius', 'Blood_Pressure_mmHg', 'Heart_Rate_BPM', 'SpO2',
-      'Status', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature'
+      'Nurse_Name', 'Status', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature'
     ];
 
     const fullWidthFields = ['Address', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature'];
@@ -889,17 +891,20 @@ function removeAdmin(email) {
       Blood_Pressure_mmHg: 'Blood Pressure (mmHg)',
       Heart_Rate_BPM: 'Heart Rate (BPM)',
       SpO2: 'SpO2 (%)',
+      Nurse_Name: 'Nurse Name',
       Doctor_Instructions: 'Doctor Instructions',
       Follow_Up_Date: 'Follow-up Date'
     };
 
-    function renderDetails(item, fields) {
+    function renderDetails(item, fields, alwaysShowFields) {
       return '<div class="details">' + fields.map(field => {
         const raw = item[field];
-        if (raw === '' || raw === null || raw === undefined) return '';
+        const showEmpty = alwaysShowFields && alwaysShowFields.includes(field);
+        if ((raw === '' || raw === null || raw === undefined) && !showEmpty) return '';
         const label = displayNames[field] || field.replace(/_/g, ' ');
         const cls = fullWidthFields.includes(field) ? ' class="full"' : '';
-        return `<div${cls}><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(raw)}</span></div>`;
+        const value = (raw === '' || raw === null || raw === undefined) ? '-' : raw;
+        return `<div${cls}><span class="label">${escapeHtml(label)}</span><span class="value">${escapeHtml(value)}</span></div>`;
       }).join('') + '</div>';
     }
 
@@ -917,7 +922,7 @@ function removeAdmin(email) {
 
       window.checkedInPatients = data.checkedIn;
       checkedContainer.innerHTML = data.checkedIn.length
-        ? data.checkedIn.map((p, i) => `<div class="item" data-idx="${i}">${renderDetails(p, patientDisplayOrder)}<button onclick="openCompleteForm(${i})">Complete</button></div>`).join('')
+        ? data.checkedIn.map((p, i) => `<div class="item" data-idx="${i}">${renderDetails(p, patientDisplayOrder, ['Doctor_Instructions','Follow_Up_Date','Signature'])}<button onclick="openCompleteForm(${i})">Complete</button></div>`).join('')
         : '<div class="empty">No checked-in patients for today.</div>';
     }
 
