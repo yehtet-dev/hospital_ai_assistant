@@ -1,3 +1,14 @@
+# Smart Clinic Dashboard
+
+This repo now contains two versions:
+
+1. **`web/`** - New **Next.js + Supabase** dashboard with real **login/sign-up**, role-based access, and the data stored in Supabase. This is the version being built now.
+2. **Google Apps Script version** below - The earlier single-file `Code.gs` + `Index.html` dashboard using Google Sheets. Kept here for reference.
+
+> You are switching to Supabase. Follow the `web/README.md` for the new setup.
+
+---
+
 # Smart Clinic - Role-based Dashboard (Google Apps Script)
 
 A single Google Apps Script Web App that serves role-based dashboards for your Smart Clinic:

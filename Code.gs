@@ -1,20 +1,20 @@
 /**
  * Smart Clinic - Role-based Dashboard Web App (Google Apps Script)
  *
- * Serves an HTML dashboard from Google Apps Script. Access is controlled by the
- * user's Google account email:
- *   - Doctors: see only their own scheduled appointments and checked-in patients.
- *   - Admins: see all data and manage Admins/Doctors accounts.
+ * Serves an HTML dashboard with custom email/password login and role-based
+ * access (Doctor / Admin). The user's session is stored in CacheService with
+ * a token returned on login.
  *
  * Required sheets/tabs (exact column names):
- *   - Appointments: Patient_ID, Full_Name, Token_Number, Doctor_Name, Primary_Symptom,
- *                   Visit_Type, Status, Date
- *   - Patients:     Patient_ID, Full_Name, Token_Number, Doctor_Name, Primary_Symptom,
- *                   Temperature_Celsius, Blood_Pressure_mmHg, Heart_Rate_BPM, SpO2,
- *                   Status, Date, Doctor_Instructions, Follow_Up_Date, Signature
+ *   - Appointments: Patient_ID, Full_Name, Token_Number, Doctor_Name,
+ *                   Primary_Symptom, Visit_Type, Status, Date
+ *   - Patients:     Patient_ID, Full_Name, Token_Number, Doctor_Name,
+ *                   Primary_Symptom, Temperature_Celsius, Blood_Pressure_mmHg,
+ *                   Heart_Rate_BPM, SpO2, Status, Date, Doctor_Instructions,
+ *                   Follow_Up_Date, Signature
  *   - Live_Queue:   Doctor_Name, Current_Queue_Number, Date
  *   - Doctors:      Doctor_Name, Email, Status, Specialty, Avg_Time, ...
- *   - Admins:       Email, Name, Status   (create manually; first admin is your own email)
+ *   - Users:        Email, Name, Role, Doctor_Name, PasswordHash, Status, Created_At
  */
 
 function doGet(e) {
@@ -99,80 +99,207 @@ function doctorMatches(rowDoctor, filter) {
   return false;
 }
 
-function getUserEmail() {
-  return normalizeEmail(Session.getActiveUser().getEmail());
+/* ---------- Auth helpers ---------- */
+
+function getSalt() {
+  var props = PropertiesService.getScriptProperties();
+  var salt = props.getProperty('AUTH_SALT');
+  if (!salt) {
+    salt = Utilities.getUuid().replace(/-/g, '').slice(0, 16);
+    props.setProperty('AUTH_SALT', salt);
+  }
+  return salt;
 }
 
-function getUser() {
-  var email = getUserEmail();
-  if (!email) return { role: 'none', email: '' };
+function hashPassword(password) {
+  var bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    getSalt() + password,
+    Utilities.Charset.UTF_8
+  );
+  return bytes.map(function(b) {
+    var v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? '0' + v : v;
+  }).join('');
+}
 
-  // Admins first
+function ensureUsersSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Users');
+  if (!sheet) {
+    sheet = ss.insertSheet('Users');
+    sheet.appendRow(['Email', 'Name', 'Role', 'Doctor_Name', 'PasswordHash', 'Status', 'Created_At']);
+  }
+  return sheet;
+}
+
+function readUsers() {
   try {
-    var admins = readSheetRows('Admins');
-    for (var i = 0; i < admins.length; i++) {
-      if (normalizeEmail(admins[i].Email) === email) {
-        var status = String(admins[i].Status || 'Active').trim().toLowerCase();
-        if (status !== 'inactive') {
-          return { role: 'admin', email: email, name: String(admins[i].Name || email) };
-        }
-      }
-    }
-  } catch (e) { /* Admins sheet may not exist yet */ }
+    return readSheetRows('Users');
+  } catch (e) {
+    ensureUsersSheet();
+    return readSheetRows('Users');
+  }
+}
 
-  // Doctors
-  var doctors = readSheetRows('Doctors');
-  for (var i = 0; i < doctors.length; i++) {
-    if (normalizeEmail(doctors[i].Email) === email) {
-      var status = String(doctors[i].Status || '').trim().toLowerCase();
-      if (status === 'active' || status === '') {
-        return {
-          role: 'doctor',
-          email: email,
-          name: String(doctors[i].Doctor_Name || ''),
-          doctorName: String(doctors[i].Doctor_Name || '')
-        };
-      }
+function findUserRow(email) {
+  email = normalizeEmail(email);
+  var users = readUsers();
+  for (var i = 0; i < users.length; i++) {
+    if (normalizeEmail(users[i].Email) === email) return users[i];
+  }
+  return null;
+}
+
+function updateUserStatusInSheet(email, status) {
+  email = normalizeEmail(email);
+  var sheet = ensureUsersSheet();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (normalizeEmail(data[i][0]) === email) {
+      sheet.getRange(i + 1, 6).setValue(status);
+      return true;
     }
   }
-
-  return { role: 'none', email: email };
+  return false;
 }
 
-function getActiveDoctors() {
+function deleteUserFromSheet(email) {
+  email = normalizeEmail(email);
+  var sheet = ensureUsersSheet();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (normalizeEmail(data[i][0]) === email) {
+      sheet.deleteRow(i + 1);
+      return true;
+    }
+  }
+  return false;
+}
+
+function createSession(user) {
+  var token = Utilities.getUuid();
+  var cache = CacheService.getScriptCache();
+  cache.put(token, JSON.stringify(user), 3600); // 1 hour
+  return token;
+}
+
+function getSession(token) {
+  if (!token) return null;
+  var cache = CacheService.getScriptCache();
+  var raw = cache.get(token);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function removeSession(token) {
+  if (!token) return;
+  CacheService.getScriptCache().remove(token);
+}
+
+function validateToken(token) {
+  var session = getSession(token);
+  if (!session) throw new Error('Session expired. Please log in again.');
+  var user = findUserRow(session.email);
+  if (!user) throw new Error('User not found. Please log in again.');
+  if (String(user.Status || '').trim().toLowerCase() !== 'active') {
+    removeSession(token);
+    throw new Error('Account is not active. Contact admin.');
+  }
+  return {
+    email: normalizeEmail(user.Email),
+    name: String(user.Name || ''),
+    role: String(user.Role || '').toLowerCase().trim(),
+    doctorName: String(user.Doctor_Name || '')
+  };
+}
+
+/* ---------- Public auth endpoints ---------- */
+
+function signup(email, password, name, role, doctorName) {
+  if (!email || !password) throw new Error('Email and password are required');
+  if (password.length < 6) throw new Error('Password must be at least 6 characters');
+  email = normalizeEmail(email);
+
+  var users = readUsers();
+  for (var i = 0; i < users.length; i++) {
+    if (normalizeEmail(users[i].Email) === email) throw new Error('Email is already registered');
+  }
+
+  var isFirstUser = users.length === 0;
+  var finalRole = isFirstUser ? 'admin' : String(role || 'doctor').toLowerCase().trim();
+  var finalStatus = isFirstUser ? 'Active' : 'Pending';
+  var finalDoctorName = finalRole === 'doctor' ? String(doctorName || '') : '';
+
+  if (finalRole === 'doctor' && !finalDoctorName) {
+    throw new Error('Please select a doctor for doctor accounts');
+  }
+
+  var hash = hashPassword(password);
+  var now = new Date().toISOString();
+  ensureUsersSheet().appendRow([email, name || '', finalRole, finalDoctorName, hash, finalStatus, now]);
+
+  return {
+    success: true,
+    status: finalStatus,
+    role: finalRole,
+    message: isFirstUser
+      ? 'Admin account created. You can log in now.'
+      : 'Account created. Wait for admin approval.'
+  };
+}
+
+function login(email, password) {
+  if (!email || !password) throw new Error('Email and password are required');
+  email = normalizeEmail(email);
+
+  var user = findUserRow(email);
+  if (!user) throw new Error('Invalid email or password');
+  if (hashPassword(password) !== String(user.PasswordHash || '')) throw new Error('Invalid email or password');
+
+  var status = String(user.Status || '').trim().toLowerCase();
+  if (status === 'pending') throw new Error('Account is pending admin approval');
+  if (status !== 'active') throw new Error('Account is not active');
+
+  var sessionUser = {
+    email: email,
+    name: String(user.Name || ''),
+    role: String(user.Role || '').toLowerCase().trim(),
+    doctorName: String(user.Doctor_Name || '')
+  };
+  var token = createSession(sessionUser);
+  return { success: true, token: token, user: sessionUser };
+}
+
+function logout(token) {
+  removeSession(token);
+  return { success: true };
+}
+
+function getCurrentUser(token) {
+  return validateToken(token);
+}
+
+/* ---------- Dashboard data ---------- */
+
+function getActiveDoctors(token) {
+  validateToken(token);
   return readSheetRows('Doctors')
     .filter(function(r) {
       var status = String(r.Status || '').trim().toLowerCase();
       return status === 'active' || status === '';
     })
     .map(function(r) { return String(r.Doctor_Name || ''); })
-    .filter(function(n) { return n; })
+    .filter(function(name) { return name; })
     .sort();
 }
 
-function getAllDoctors() {
-  return readSheetRows('Doctors').map(function(r) {
-    return {
-      Doctor_Name: String(r.Doctor_Name || ''),
-      Email: String(r.Email || ''),
-      Status: String(r.Status || ''),
-      Specialty: String(r.Specialty || '')
-    };
-  });
-}
-
-function getAdmins() {
-  try {
-    return readSheetRows('Admins');
-  } catch (e) {
-    return [];
-  }
-}
-
-function getData(doctorFilter, dateFilter) {
-  var user = getUser();
-  if (user.role === 'none') throw new Error('Not authorized');
-
+function getData(token, doctorFilter, dateFilter) {
+  var user = validateToken(token);
   var today = getTodayString();
   var filter = '';
   var allDoctors = false;
@@ -183,6 +310,8 @@ function getData(doctorFilter, dateFilter) {
   } else if (user.role === 'admin') {
     filter = String(doctorFilter || '').trim();
     allDoctors = filter === '';
+  } else {
+    throw new Error('Not authorized');
   }
 
   var appointments = readSheetRows('Appointments').filter(function(r) {
@@ -264,8 +393,8 @@ function getPatientRow(patientId) {
   return rows.length ? rows[0] : null;
 }
 
-function completePatient(patientId, instructions, followUpDate, signature) {
-  var user = getUser();
+function completePatient(token, patientId, instructions, followUpDate, signature) {
+  var user = validateToken(token);
   if (user.role !== 'doctor') throw new Error('Only doctors can complete patients');
 
   var patient = getPatientRow(patientId);
@@ -304,9 +433,28 @@ function completePatient(patientId, instructions, followUpDate, signature) {
   throw new Error('Webhook error ' + code + ': ' + text);
 }
 
-function updateDoctor(doctorName, email, status) {
-  var user = getUser();
-  if (user.role !== 'admin') throw new Error('Not authorized');
+/* ---------- Admin management ---------- */
+
+function requireAdmin(token) {
+  var user = validateToken(token);
+  if (user.role !== 'admin') throw new Error('Admin access required');
+  return user;
+}
+
+function getAllDoctors(token) {
+  requireAdmin(token);
+  return readSheetRows('Doctors').map(function(r) {
+    return {
+      Doctor_Name: String(r.Doctor_Name || ''),
+      Email: String(r.Email || ''),
+      Status: String(r.Status || ''),
+      Specialty: String(r.Specialty || '')
+    };
+  });
+}
+
+function updateDoctor(token, doctorName, email, status) {
+  requireAdmin(token);
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Doctors');
@@ -329,48 +477,60 @@ function updateDoctor(doctorName, email, status) {
   throw new Error('Doctor not found');
 }
 
-function saveAdmin(email, name, status) {
-  var user = getUser();
-  if (user.role !== 'admin') throw new Error('Not authorized');
-
-  email = normalizeEmail(email);
-  if (!email) throw new Error('Email is required');
-
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Admins');
-  if (!sheet) {
-    sheet = ss.insertSheet('Admins');
-    sheet.appendRow(['Email', 'Name', 'Status']);
-  }
-
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (normalizeEmail(data[i][0]) === email) {
-      sheet.getRange(i + 1, 2).setValue(name || '');
-      sheet.getRange(i + 1, 3).setValue(status || 'Active');
-      return { success: true, email: email, action: 'updated' };
-    }
-  }
-
-  sheet.appendRow([email, name || '', status || 'Active']);
-  return { success: true, email: email, action: 'added' };
+function getUsers(token) {
+  requireAdmin(token);
+  return readUsers();
 }
 
-function removeAdmin(email) {
-  var user = getUser();
-  if (user.role !== 'admin') throw new Error('Not authorized');
-  if (normalizeEmail(email) === user.email) throw new Error('You cannot remove yourself');
+function updateUserStatus(token, email, status) {
+  requireAdmin(token);
+  if (!email) throw new Error('Email required');
+  if (updateUserStatusInSheet(email, status)) {
+    return { success: true, email: email, status: status };
+  }
+  throw new Error('User not found');
+}
 
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Admins');
-  if (!sheet) throw new Error('Admins sheet not found');
+function updateUserRole(token, email, role, doctorName) {
+  requireAdmin(token);
+  if (!email) throw new Error('Email required');
+  role = String(role || '').toLowerCase().trim();
+  if (role !== 'admin' && role !== 'doctor') throw new Error('Role must be admin or doctor');
+  if (role === 'doctor' && !doctorName) throw new Error('Doctor name required for doctor role');
 
+  var sheet = ensureUsersSheet();
   var data = sheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
     if (normalizeEmail(data[i][0]) === normalizeEmail(email)) {
-      sheet.deleteRow(i + 1);
+      sheet.getRange(i + 1, 3).setValue(role);
+      sheet.getRange(i + 1, 4).setValue(role === 'doctor' ? String(doctorName || '') : '');
+      return { success: true, email: email, role: role, doctorName: doctorName };
+    }
+  }
+  throw new Error('User not found');
+}
+
+function deleteUser(token, email) {
+  requireAdmin(token);
+  if (!email) throw new Error('Email required');
+  if (deleteUserFromSheet(email)) {
+    return { success: true, email: email };
+  }
+  throw new Error('User not found');
+}
+
+function resetPassword(token, email, newPassword) {
+  requireAdmin(token);
+  if (!email || !newPassword) throw new Error('Email and new password required');
+  if (newPassword.length < 6) throw new Error('Password must be at least 6 characters');
+
+  var sheet = ensureUsersSheet();
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (normalizeEmail(data[i][0]) === normalizeEmail(email)) {
+      sheet.getRange(i + 1, 5).setValue(hashPassword(newPassword));
       return { success: true, email: email };
     }
   }
-  throw new Error('Admin not found');
+  throw new Error('User not found');
 }
