@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Clinic Dashboard</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 16px; background: #f5f6f8; color: #333; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    .subtitle { color: #666; font-size: 13px; margin-bottom: 12px; }
+    .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .badge { background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .toolbar select, .toolbar input, .toolbar button { padding: 8px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+    .toolbar select, .toolbar input { min-width: 180px; }
+    .toolbar button { background: #2196F3; color: white; border: none; cursor: pointer; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media (min-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 16px; }
+    .card h2 { margin: 0 0 12px; font-size: 16px; color: #444; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .list { max-height: 60vh; overflow-y: auto; }
+    .item { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; margin-bottom: 10px; background: #fafafa; }
+    .item strong { font-size: 15px; color: #222; }
+    .item small { display: block; color: #666; margin-top: 3px; font-size: 12px; }
+    .item .meta { margin-top: 6px; font-size: 12px; color: #555; }
+    .item button { margin-top: 10px; background: #4CAF50; color: white; border: none; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .item button:hover { background: #45a049; }
+    .empty { color: #999; font-size: 13px; padding: 10px 0; }
+    .form { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 6px; padding: 14px; margin-top: 12px; }
+    .form h3 { margin: 0 0 10px; font-size: 15px; }
+    label { display: block; font-size: 13px; margin-bottom: 8px; color: #444; }
+    textarea, input[type=date], input[type=text], input[type=email] { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+    .form-actions { margin-top: 12px; }
+    .form-actions button { padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .form-actions .submit { background: #4CAF50; color: white; }
+    .form-actions .cancel { background: #9e9e9e; color: white; margin-left: 8px; }
+    #message { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); padding: 12px 18px; border-radius: 6px; display: none; font-size: 14px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .loading { color: #666; font-size: 13px; }
+    .unauthorized { color: #721c24; background: #f8d7da; padding: 20px; border-radius: 8px; text-align: center; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #ddd; }
+    .tab { padding: 8px 16px; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 14px; color: #555; }
+    .tab.active { border-bottom-color: #2196F3; color: #2196F3; font-weight: 600; }
+    .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .summary-box { background: white; border-radius: 6px; padding: 12px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); min-width: 120px; text-align: center; }
+    .summary-box .number { font-size: 22px; font-weight: 700; color: #2196F3; }
+    .summary-box .label { font-size: 12px; color: #666; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; border-radius: 6px; overflow: hidden; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
+    th { background: #f5f5f5; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .small-btn { background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .danger { background: #f44336; }
+    .sig-box { border: 1px dashed #ccc; background: #fff; border-radius: 4px; width: 100%; max-width: 400px; }
+    .sig-box canvas { width: 100%; height: 120px; display: block; cursor: crosshair; }
+    .sig-actions { margin-top: 8px; }
+    .sig-actions button { background: #ff9800; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .hidden { display: none; }
+    .section { margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Smart Clinic Dashboard</h1>
+      <div class="subtitle" id="subtitle">Loading...</div>
+    </div>
+    <div id="userInfo"></div>
+  </div>
+
+  <div id="message"></div>
+  <div id="app"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let currentUser = null;
+    let refreshTimer = null;
+    let isSubmitting = false;
+
+    function showMessage(text, isError) {
+      const el = $('message');
+      el.textContent = text;
+      el.className = isError ? 'error' : 'success';
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 6000);
+    }
+
+    function setStatus(text) {
+      const statusEl = document.querySelector('.loading');
+      if (statusEl) statusEl.textContent = text;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function init() {
+      $('app').innerHTML = '<p class="loading">Loading user...</p>';
+      google.script.run
+        .withSuccessHandler(onUser)
+        .withFailureHandler(onError)
+        .getUser();
+    }
+
+    function onError(err) {
+      $('app').innerHTML = '<div class="unauthorized">Error: ' + escapeHtml(err.message) + '</div>';
+      showMessage(err.message, true);
+    }
+
+    function onUser(user) {
+      currentUser = user;
+      $('subtitle').textContent = 'Today: ' + new Date().toLocaleDateString('en-CA');
+      if (user.role === 'none') {
+        $('userInfo').innerHTML = '<span class="badge">Not logged in</span>';
+        $('app').innerHTML = '<div class="unauthorized">You are not authorized. Your email <strong>' + escapeHtml(user.email) + '</strong> is not in the Doctors or Admins list.</div>';
+        return;
+      }
+      $('userInfo').innerHTML = '<span class="badge">' + escapeHtml(user.role.toUpperCase()) + ': ' + escapeHtml(user.name || user.email) + '</span>';
+      if (user.role === 'doctor') renderDoctorView();
+      else if (user.role === 'admin') renderAdminView();
+    }
+
+    /* ----------------- Doctor View ----------------- */
+    function renderDoctorView() {
+      $('app').innerHTML = `
+        <div class="toolbar">
+          <div><span class="loading">Loading...</span></div>
+          <button onclick="manualRefresh()">Refresh</button>
+        </div>
+        <div class="grid">
+          <div class="card"><h2>Scheduled Appointments</h2><div id="appointments" class="list"><div class="empty">Loading...</div></div></div>
+          <div class="card"><h2>Checked-in Patients</h2><div id="checkedIn" class="list"><div class="empty">Loading...</div></div></div>
+        </div>
+      `;
+      loadDoctorData();
+      scheduleRefresh();
+    }
+
+    function loadDoctorData() {
+      google.script.run
+        .withSuccessHandler(renderDoctorData)
+        .withFailureHandler(onError)
+        .getData('', '');
+    }
+
+    function renderDoctorData(data) {
+      const statusEl = document.querySelector('.loading');
+      if (statusEl) statusEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
+      const appContainer = $('appointments');
+      const checkedContainer = $('checkedIn');
+      if (!appContainer || !checkedContainer) return;
+
+      appContainer.innerHTML = data.appointments.length
+        ? data.appointments.map(p => `
+          <div class="item">
+            <strong>${escapeHtml(p.Token_Number ? '#' + p.Token_Number + ' ' : '')}${escapeHtml(p.Full_Name)}</strong>
+            <small>Doctor: ${escapeHtml(p.Doctor_Name)}</small>
+            <small>Symptom: ${escapeHtml(p.Primary_Symptom)}</small>
+            <small>Visit Type: ${escapeHtml(p.Visit_Type)}</small>
+          </div>
+        `).join('')
+        : '<div class="empty">No scheduled appointments for today.</div>';
+
+      window.checkedInPatients = data.checkedIn;
+      checkedContainer.innerHTML = data.checkedIn.length
+        ? data.checkedIn.map((p, i) => `
+          <div class="item" data-idx="${i}">
+            <strong>${escapeHtml(p.Token_Number ? '#' + p.Token_Number + ' ' : '')}${escapeHtml(p.Full_Name)}</strong>
+            <small>Doctor: ${escapeHtml(p.Doctor_Name)}</small>
+            <small>Symptom: ${escapeHtml(p.Primary_Symptom)}</small>
+            <div class="meta">Vitals: ${escapeHtml(p.Temperature_Celsius || '-')}, ${escapeHtml(p.Blood_Pressure_mmHg || '-')}, HR ${escapeHtml(p.Heart_Rate_BPM || '-')}, SpO2 ${escapeHtml(p.SpO2 || '-')}</div>
+            <button onclick="openCompleteForm(${i})">Complete</button>
+          </div>
+        `).join('')
+        : '<div class="empty">No checked-in patients for today.</div>';
+    }
+
+    function openCompleteForm(index) {
+      if (isSubmitting) return;
+      const p = window.checkedInPatients[index];
+      if (!p) return;
+      window.currentPatientId = p.Patient_ID;
+      const container = $('checkedIn');
+      container.innerHTML = `
+        <div class="form">
+          <h3>Complete ${escapeHtml(p.Full_Name)}</h3>
+          <label>Doctor Instructions
+            <textarea id="instructions" rows="4" placeholder="Enter instructions">${escapeHtml(p.Doctor_Instructions || '')}</textarea>
+          </label>
+          <label>Follow-up Date
+            <input type="date" id="followUpDate" value="${escapeHtml(p.Follow_Up_Date || '')}">
+          </label>
+          <label>Doctor Signature
+            <div class="sig-box"><canvas id="sigCanvas" width="400" height="120"></canvas></div>
+            <div class="sig-actions">
+              <button type="button" onclick="clearSignature()">Clear</button>
+            </div>
+          </label>
+          <div class="form-actions">
+            <button class="submit" onclick="submitComplete()">Complete &amp; Call Next</button>
+            <button class="cancel" onclick="loadDoctorData()">Cancel</button>
+          </div>
+        </div>
+      `;
+      initSignaturePad();
+    }
+
+    let sigCtx = null;
+    let sigDrawing = false;
+    function initSignaturePad() {
+      const canvas = $('sigCanvas');
+      if (!canvas) return;
+      sigCtx = canvas.getContext('2d');
+      sigCtx.lineWidth = 2;
+      sigCtx.lineCap = 'round';
+      sigCtx.strokeStyle = '#000';
+      sigDrawing = false;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+      }
+
+      canvas.addEventListener('mousedown', (e) => { sigDrawing = true; const pos = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(pos.x, pos.y); });
+      canvas.addEventListener('mousemove', (e) => { if (!sigDrawing) return; const pos = getPos(e); sigCtx.lineTo(pos.x, pos.y); sigCtx.stroke(); });
+      window.addEventListener('mouseup', () => { sigDrawing = false; });
+      canvas.addEventListener('touchstart', (e) => { e.preventDefault(); sigDrawing = true; const pos = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(pos.x, pos.y); });
+      canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!sigDrawing) return; const pos = getPos(e); sigCtx.lineTo(pos.x, pos.y); sigCtx.stroke(); });
+      window.addEventListener('touchend', () => { sigDrawing = false; });
+    }
+
+    function clearSignature() {
+      if (!sigCtx) return;
+      const canvas = $('sigCanvas');
+      sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function getSignatureData() {
+      const canvas = $('sigCanvas');
+      if (!canvas) return '';
+      const blank = document.createElement('canvas');
+      blank.width = canvas.width;
+      blank.height = canvas.height;
+      if (canvas.toDataURL() === blank.toDataURL()) return '';
+      return canvas.toDataURL('image/png');
+    }
+
+    function submitComplete() {
+      if (isSubmitting) return;
+      const instructions = $('instructions').value;
+      const followUpDate = $('followUpDate').value;
+      const signature = getSignatureData();
+      isSubmitting = true;
+      showMessage('Submitting...', false);
+      google.script.run
+        .withSuccessHandler((result) => {
+          isSubmitting = false;
+          showMessage(result.message || 'Done', false);
+          loadDoctorData();
+        })
+        .withFailureHandler((err) => {
+          isSubmitting = false;
+          showMessage('Error: ' + err.message, true);
+        })
+        .completePatient(window.currentPatientId, instructions, followUpDate, signature);
+    }
+
+    /* ----------------- Admin View ----------------- */
+    function renderAdminView() {
+      $('app').innerHTML = `
+        <div class="tabs">
+          <button class="tab active" onclick="switchAdminTab('dashboard')">Dashboard</button>
+          <button class="tab" onclick="switchAdminTab('doctors')">Doctors</button>
+          <button class="tab" onclick="switchAdminTab('admins')">Admins</button>
+        </div>
+        <div id="adminContent"></div>
+      `;
+      switchAdminTab('dashboard');
+    }
+
+    function switchAdminTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.tab')).find(b => b.textContent.toLowerCase() === tab);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (tab === 'dashboard') renderAdminDashboard();
+      else if (tab === 'doctors') renderDoctorsManager();
+      else if (tab === 'admins') renderAdminsManager();
+    }
+
+    function renderAdminDashboard() {
+      $('adminContent').innerHTML = `
+        <div class="toolbar">
+          <div>
+            <select id="adminDoctorFilter" onchange="loadAdminDashboardData()"><option value="">All doctors</option></select>
+            <input type="date" id="adminDateFilter" value="${new Date().toLocaleDateString('en-CA')}" onchange="loadAdminDashboardData()">
+            <span class="loading">Loading...</span>
+          </div>
+          <button onclick="loadAdminDashboardData()">Refresh</button>
+        </div>
+        <div class="summary">
+          <div class="summary-box"><div class="number" id="countAppointments">0</div><div class="label">Scheduled</div></div>
+          <div class="summary-box"><div class="number" id="countCheckedIn">0</div><div class="label">Checked-in</div></div>
+          <div class="summary-box"><div class="number" id="countCompleted">0</div><div class="label">Completed</div></div>
+        </div>
+        <div class="section">
+          <h2>Scheduled Appointments</h2>
+          <div id="adminAppointments"><div class="empty">Loading...</div></div>
+        </div>
+        <div class="section">
+          <h2>Checked-in Patients</h2>
+          <div id="adminCheckedIn"><div class="empty">Loading...</div></div>
+        </div>
+        <div class="section">
+          <h2>Completed Patients</h2>
+          <div id="adminCompleted"><div class="empty">Loading...</div></div>
+        </div>
+      `;
+      populateAdminDoctorFilter();
+      loadAdminDashboardData();
+      scheduleRefreshAdmin();
+    }
+
+    function populateAdminDoctorFilter() {
+      google.script.run
+        .withSuccessHandler((doctors) => {
+          const sel = $('adminDoctorFilter');
+          if (!sel) return;
+          sel.innerHTML = '<option value="">All doctors</option>';
+          doctors.forEach(doc => {
+            const opt = document.createElement('option');
+            opt.value = doc;
+            opt.textContent = doc;
+            sel.appendChild(opt);
+          });
+        })
+        .withFailureHandler(onError)
+        .getActiveDoctors();
+    }
+
+    function loadAdminDashboardData() {
+      const doctor = $('adminDoctorFilter') ? $('adminDoctorFilter').value : '';
+      const date = $('adminDateFilter') ? $('adminDateFilter').value : '';
+      google.script.run
+        .withSuccessHandler(renderAdminDashboardData)
+        .withFailureHandler(onError)
+        .getData(doctor, date);
+    }
+
+    function renderAdminDashboardData(data) {
+      const statusEl = document.querySelector('.loading');
+      if (statusEl) statusEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
+      $('countAppointments').textContent = data.appointments.length;
+      $('countCheckedIn').textContent = data.checkedIn.length;
+      $('countCompleted').textContent = data.completed.length;
+
+      $('adminAppointments').innerHTML = renderTable(data.appointments, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Visit_Type']);
+      $('adminCheckedIn').innerHTML = renderTable(data.checkedIn, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Temperature_Celsius', 'Blood_Pressure_mmHg', 'Heart_Rate_BPM', 'SpO2']);
+      $('adminCompleted').innerHTML = renderTable(data.completed, ['Token_Number', 'Full_Name', 'Doctor_Name', 'Primary_Symptom', 'Doctor_Instructions', 'Follow_Up_Date', 'Signature']);
+    }
+
+    function renderTable(rows, columns) {
+      if (!rows.length) return '<div class="empty">No records found.</div>';
+      let html = '<table><thead><tr>' + columns.map(c => '<th>' + escapeHtml(c) + '</th>').join('') + '</tr></thead><tbody>';
+      rows.forEach(r => {
+        html += '<tr>' + columns.map(c => {
+          const val = r[c];
+          if (c === 'Signature' && val) return '<td><a href="' + escapeHtml(val) + '" target="_blank">View</a></td>';
+          return '<td>' + escapeHtml(val != null ? val : '') + '</td>';
+        }).join('') + '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+
+    function renderDoctorsManager() {
+      $('adminContent').innerHTML = '<div class="loading">Loading doctors...</div>';
+      google.script.run
+        .withSuccessHandler((doctors) => {
+          $('adminContent').innerHTML = '<h2>Manage Doctors</h2><div id="doctorsTable"></div>';
+          const container = $('doctorsTable');
+          if (!doctors.length) {
+            container.innerHTML = '<div class="empty">No doctors found.</div>';
+            return;
+          }
+          let html = '<table><thead><tr><th>Doctor</th><th>Specialty</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+          doctors.forEach((d, i) => {
+            html += `
+              <tr>
+                <td>${escapeHtml(d.Doctor_Name)}</td>
+                <td>${escapeHtml(d.Specialty)}</td>
+                <td><input type="email" id="docEmail${i}" value="${escapeHtml(d.Email)}" style="width:200px"></td>
+                <td><input type="text" id="docStatus${i}" value="${escapeHtml(d.Status || 'Active')}" style="width:100px"></td>
+                <td><button class="small-btn" onclick="saveDoctor(${i})">Save</button></td>
+              </tr>
+            `;
+          });
+          html += '</tbody></table>';
+          container.innerHTML = html;
+          window.doctorsList = doctors;
+        })
+        .withFailureHandler(onError)
+        .getAllDoctors();
+    }
+
+    function saveDoctor(index) {
+      const doctorName = window.doctorsList[index].Doctor_Name;
+      const email = $('docEmail' + index).value;
+      const status = $('docStatus' + index).value;
+      google.script.run
+        .withSuccessHandler(() => { showMessage('Doctor updated', false); renderDoctorsManager(); })
+        .withFailureHandler((err) => showMessage(err.message, true))
+        .updateDoctor(doctorName, email, status);
+    }
+
+    function renderAdminsManager() {
+      $('adminContent').innerHTML = '<div class="loading">Loading admins...</div>';
+      google.script.run
+        .withSuccessHandler((admins) => {
+          $('adminContent').innerHTML = `
+            <h2>Manage Admins</h2>
+            <div style="margin-bottom:16px; background:white; padding:16px; border-radius:6px;">
+              <label style="display:inline-block; margin-right:8px;">Email <input type="email" id="newAdminEmail" placeholder="admin@example.com" style="width:220px"></label>
+              <label style="display:inline-block; margin-right:8px;">Name <input type="text" id="newAdminName" placeholder="Admin Name" style="width:180px"></label>
+              <button class="small-btn" onclick="addAdmin()">Add Admin</button>
+            </div>
+            <div id="adminsTable"></div>
+          `;
+          const container = $('adminsTable');
+          if (!admins.length) {
+            container.innerHTML = '<div class="empty">No admins found.</div>';
+            return;
+          }
+          let html = '<table><thead><tr><th>Email</th><th>Name</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+          admins.forEach(a => {
+            const email = String(a.Email || '');
+            html += `
+              <tr>
+                <td>${escapeHtml(email)}</td>
+                <td>${escapeHtml(a.Name || '')}</td>
+                <td>${escapeHtml(a.Status || 'Active')}</td>
+                <td><button class="small-btn danger" onclick="removeAdmin('${escapeHtml(email)}')">Remove</button></td>
+              </tr>
+            `;
+          });
+          html += '</tbody></table>';
+          container.innerHTML = html;
+        })
+        .withFailureHandler(onError)
+        .getAdmins();
+    }
+
+    function addAdmin() {
+      const email = $('newAdminEmail').value;
+      const name = $('newAdminName').value;
+      if (!email) return showMessage('Email is required', true);
+      google.script.run
+        .withSuccessHandler(() => { showMessage('Admin added', false); renderAdminsManager(); })
+        .withFailureHandler((err) => showMessage(err.message, true))
+        .saveAdmin(email, name, 'Active');
+    }
+
+    function removeAdmin(email) {
+      if (!confirm('Remove admin ' + email + '?')) return;
+      google.script.run
+        .withSuccessHandler(() => { showMessage('Admin removed', false); renderAdminsManager(); })
+        .withFailureHandler((err) => showMessage(err.message, true))
+        .removeAdmin(email);
+    }
+
+    /* ----------------- Shared ----------------- */
+    function manualRefresh() {
+      clearTimeout(refreshTimer);
+      if (currentUser.role === 'doctor') loadDoctorData();
+      else if (currentUser.role === 'admin') loadAdminDashboardData();
+      scheduleRefresh();
+    }
+
+    function scheduleRefresh() {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        if (currentUser.role === 'doctor') loadDoctorData();
+        else if (currentUser.role === 'admin') {
+          const activeTab = document.querySelector('.tab.active');
+          if (activeTab && activeTab.textContent.toLowerCase() === 'dashboard') loadAdminDashboardData();
+        }
+        scheduleRefresh();
+      }, 30000);
+    }
+
+    function scheduleRefreshAdmin() {
+      scheduleRefresh();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
