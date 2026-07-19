@@ -1,0 +1,767 @@
+{
+  "name": "Booking Execution Subworkflow",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Doctors"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $json.doctorName }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "9a9f20c3-ae12-483e-8abf-1ac983b34270",
+      "name": "Find Doctor",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -656,
+        496
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $('Prepare Data').first().json.doctorName }}"
+            },
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $('Prepare Data').first().json.appointmentDate }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "0685ec46-5e5c-4baf-a3f8-84a9c3d4625b",
+      "name": "Count Appointments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -432,
+        496
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $('Prepare Data').first().json;\nconst doctorItems = $('Find Doctor').all().filter(i => i.json.Doctor_Name);\n\nif (doctorItems.length === 0) {\n  return [{ json: { decision: 'REJECT', output: `Status: DOCTOR_NOT_FOUND. No doctor named '${req.doctorName}' exists.` } }];\n}\n\nconst doc = doctorItems[0].json;\nconst days = (doc.Available_Days || '').toString().split(',').map(s => s.trim()).filter(Boolean);\nconst hours = doc.Available_Time || 'N/A';\nconst maxPerDay = doc.max_patients_per_day || 20;\n\n// NEW LOGIC: Split the Live_Queue column by commas and count the length\nconst liveQueueArr = (doc.Live_Queue || '').toString().split(',').filter(Boolean);\nconst count = liveQueueArr.length;\n\nconst weekdayOf = ds => new Date(ds + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });\nconst nextAvailable = from => {\n  const d = new Date(from + 'T00:00:00Z');\n  for (let i = 1; i <= 14; i++) {\n    d.setUTCDate(d.getUTCDate() + 1);\n    const iso = d.toISOString().slice(0, 10);\n    if (days.includes(weekdayOf(iso))) return iso;\n  }\n  return null;\n};\n\nif (!days.includes(weekdayOf(req.appointmentDate))) {\n  return [{ json: { ...req, decision: 'REJECT', output: `Status: DOCTOR_UNAVAILABLE. ${doc.Doctor_Name} is only available on ${days.join(', ')} (${hours}). Suggested Date: ${nextAvailable(req.appointmentDate) || 'none found'}` } }];\n}\n\n// Evaluate using the new Live_Queue count\nif (count >= maxPerDay) {\n  return [{ json: { ...req, decision: 'REJECT', output: `Status: SLOT_FULL. ${doc.Doctor_Name} is fully booked on ${req.appointmentDate}. Suggested Date: ${nextAvailable(req.appointmentDate) || 'none found'}` } }];\n}\n\nreturn [{ json: { ...req, decision: 'BOOK', doctorName: doc.Doctor_Name, hours, tokenNumber: count + 1 } }];"
+      },
+      "id": "86c40f9c-d8db-4fbf-8e2f-2fde2e2cf369",
+      "name": "Decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "37d2bf89-6e31-4a67-abe2-527736cb0e22",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "BOOK",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e2457ec0-93b9-496f-8879-06e5a42717d7",
+      "name": "Should Book?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888888,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient_ID": "={{ $json.Patient_ID }}",
+            "Timestamp": "={{ $json.Timestamp }}",
+            "Full_Name": "={{ $json.Full_Name }}",
+            "Age": "={{ $json.Age }}",
+            "Sex": "={{ $json.Sex }}",
+            "Phone_Number": "={{ $json.Phone_Number }}",
+            "Address": "={{ $json.Address }}",
+            "Primary_Symptom": "={{ $json.Primary_Symptom }}",
+            "Doctor_Name": "={{ $json.Doctor_Name }}",
+            "Date": "={{ $json.Date }}",
+            "Visit_Type": "={{ $json.Visit_Type }}",
+            "Chat_ID": "={{ $json.Chat_ID }}",
+            "Token_Number": "={{ $json.Token_Number }}",
+            "Status": "={{ $json.Status }}",
+            "Triage_Form_URL": "={{ $json.Triage_Form_URL }}",
+            "QR_Image_URL": "={{ $json.QR_Image_URL }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Triage_Form_URL",
+              "displayName": "Triage_Form_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "QR_Image_URL",
+              "displayName": "QR_Image_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "bfb2fc9f-4354-43b6-bd3a-251e64c4dc74",
+      "name": "Append Appointment",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        496
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $(\"Append Appointment\").first().json;\nreturn [{ json: { status: 'BOOKED', tokenNumber: p.Token_Number, doctorName: p.Doctor_Name, appointmentDate: p.Date, message: `Appointment booked. Token #${p.Token_Number}. QR code sent to your Telegram.` }}];\n"
+      },
+      "id": "a4a86f7b-b749-4572-b6f3-5336be209451",
+      "name": "Format Booked",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $input.first().json;\nreturn [{ json: { status: p.decision, message: p.output }}];\n"
+      },
+      "id": "b8ad0cc6-b79f-4106-9e19-bd18354f1750",
+      "name": "Format Rejection",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "clinic-registration",
+        "options": {}
+      },
+      "id": "28e3597b-a91d-4f5e-a7f4-e8585c0e6327",
+      "name": "Registration Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1008,
+        496
+      ],
+      "webhookId": "65653a8f-59bd-4e40-8023-8f1767974d7f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.body;\nconst parseDate = (raw) => {\n  if (!raw) return $today.toFormat('yyyy-MM-dd');\n  if (DateTime.fromISO(raw).isValid) return DateTime.fromISO(raw).toFormat('yyyy-MM-dd');\n  if (DateTime.fromFormat(raw, 'yyyy-MM-dd').isValid) return raw;\n  if (DateTime.fromFormat(raw, 'M/d/yyyy').isValid) return DateTime.fromFormat(raw, 'M/d/yyyy').toFormat('yyyy-MM-dd');\n  if (DateTime.fromFormat(raw, 'dd/MM/yyyy').isValid) return DateTime.fromFormat(raw, 'dd/MM/yyyy').toFormat('yyyy-MM-dd');\n  return $today.toFormat('yyyy-MM-dd');\n};\nreturn [{\n  json: {\n    patientName: (r.Full_Name || '').toString().trim(),\n    phone: (r.Phone_Number || '').toString(),\n    symptom: (r.Primary_Symptom || '').toString(),\n    doctorName: (r.Doctor_Name || '').toString().trim(),\n    appointmentDate: parseDate(r.Appointment_Date || r.Date),\n    chatId: (r.Chat_ID || '').toString(),\n    Age: (r.Age || '').toString(),\n    Sex: (r.Sex || '').toString(),\n    Address: (r.Address || '').toString(),\n    Visit_Type: (r.Visit_Type || 'New').toString(),\n    Timestamp: $now.toFormat('yyyy-MM-dd HH:mm:ss')\n  }\n}];\n"
+      },
+      "id": "817e522a-713c-4773-b150-fdb5f680e2c1",
+      "name": "Prepare Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -816,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $input.first().json;\nconst patientId = 'P-' + $now.toFormat('yyyyMMddHHmmss') + '-' + $now.toFormat('SSS');\nconst triageUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSclqggNnB0sAmgqRg6gdiA7Gia7RWxuMbZVjeoF9G0JMDj7Kg/viewform?usp=pp_url&entry.347884731=' + encodeURIComponent(patientId);\nconst qrUrl = 'https://quickchart.io/qr?text=' + encodeURIComponent(triageUrl) + '&size=300&margin=2';\nreturn [{\n  json: {\n    ...p,\n    Timestamp: $now.toFormat('yyyy-MM-dd HH:mm:ss'),\n    Patient_ID: patientId,\n    Full_Name: p.patientName,\n    Phone_Number: p.phone,\n    Primary_Symptom: p.symptom,\n    Doctor_Name: p.doctorName,\n    Date: p.appointmentDate,\n    Chat_ID: p.chatId,\n    Token_Number: p.tokenNumber,\n    Status: 'Scheduled',\n    Triage_Form_URL: triageUrl,\n    QR_Image_URL: qrUrl,\n    Age: p.Age || '',\n    Sex: p.Sex || '',\n    Address: p.Address || '',\n    Visit_Type: p.Visit_Type || 'New'\n  }\n}];\n"
+      },
+      "id": "30428523-f8f1-48cd-830b-0e4b41e521a3",
+      "name": "Generate QR Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Generate QR Code').item.json.Chat_ID }}",
+        "file": "={{ $('Generate QR Code').item.json.QR_Image_URL }}",
+        "additionalFields": {
+          "caption": "={{ 'မင်္ဂလာပါ ' + ( $('Generate QR Code').item.json.Full_Name|| 'Patient') + ', တိုကင်နံပတ် #' + $('Generate QR Code').item.json.Token_Number + ' ကျပါတယ်ရှင့်။ ဆေးရုံရောက်လျှင် ဒီ QR codeနဲ့ သွေးပေါင်ချိန်ဖို သူနာပြုဆရာမဆီ သွားပေးပါရှင့်။ သွေးပေါင်ချိန်တိုင်းပြီးလျှင် ဆရာဝန်နဲ့ ပြဖို ခေတ္တစောင့်ဆိုင်းပေးပါရှင်၊ အလှည့်ကျတဲ့အချိန် ဒီကနေ ခေါ်ပေးပါ့မယ်ရှင့်၊ အင်တာနက်တော့ ဖွင့်ထားပေးဖို လိုပါမယ်ရှင့်' }}",
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "cbf9e3e0-11e0-410b-b4a2-c9cce910ac4e",
+      "name": "Send QR Code",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        480
+      ],
+      "webhookId": "b6c33830-5f54-4ab5-bc6e-ad52bd366ac2",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1005762907,
+          "mode": "list",
+          "cachedResultName": "Doctors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=1005762907"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Doctor_Name": "={{ $json.Doctor_Name }}",
+            "Appointments": "={{ $json.Appointments }}",
+            "Live_Queue": "={{ $json.Live_Queue }}",
+            "max_patients_per_day": "={{ $json.max_patients_per_day }}"
+          },
+          "matchingColumns": [
+            "Doctor_Name"
+          ],
+          "schema": [
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Specialty",
+              "displayName": "Specialty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Avg_Time",
+              "displayName": "Avg_Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Available_Days",
+              "displayName": "Available_Days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Qualifications",
+              "displayName": "Qualifications",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Appointments",
+              "displayName": "Appointments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Live_Queue",
+              "displayName": "Live_Queue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "max_patients_per_day",
+              "displayName": "max_patients_per_day",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Available_Time",
+              "displayName": "Available_Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        544,
+        688
+      ],
+      "id": "3b4833c4-5ec9-4954-8082-cc2d9a77ed20",
+      "name": "Update Doctor Table",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const appendUnique = (existing, newVal) => {\n  const e = (existing || '').toString().trim();\n  const n = (newVal || '').toString().trim();\n  if (!e) return n;\n  if (!n) return e;\n  const arr = e.split(',').map(s => s.trim()).filter(Boolean);\n  if (arr.includes(n)) return e;\n  return e + ',' + n;\n};\n\nconst doc = $('Find Doctor').first().json;\nconst appt = $('Append Appointment').first().json;\n\nconst doctorName = (appt.Doctor_Name || '').toString().trim();\nconst patientName = (appt.Full_Name || '').toString().trim();\nconst token = appt.Token_Number !== undefined && appt.Token_Number !== null ? appt.Token_Number.toString() : '';\n\n// Simply grab the current max limit without modifying it\nconst currentMax = doc.max_patients_per_day !== undefined && doc.max_patients_per_day !== null ? Number(doc.max_patients_per_day) : 20;\n\nreturn [{\n  json: {\n    Doctor_Name: doctorName,\n    Appointments: appendUnique(doc.Appointments, patientName),\n    Live_Queue: appendUnique(doc.Live_Queue, token),\n    max_patients_per_day: currentMax // STAYS THE SAME!\n  }\n}];"
+      },
+      "id": "7cb07d49-6b52-4ae4-953b-71ee44bf0ffa",
+      "name": "Prepare Doctor Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        496
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Registration Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Find Doctor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Doctor": {
+      "main": [
+        [
+          {
+            "node": "Count Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Count Appointments": {
+      "main": [
+        [
+          {
+            "node": "Decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide": {
+      "main": [
+        [
+          {
+            "node": "Should Book?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Book?": {
+      "main": [
+        [
+          {
+            "node": "Generate QR Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate QR Code": {
+      "main": [
+        [
+          {
+            "node": "Append Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Appointment": {
+      "main": [
+        [
+          {
+            "node": "Prepare Doctor Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send QR Code": {
+      "main": [
+        [
+          {
+            "node": "Format Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Doctor Table": {
+      "main": [
+        [
+          {
+            "node": "Send QR Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Doctor Update": {
+      "main": [
+        [
+          {
+            "node": "Update Doctor Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "52b4895f-7e4b-4b37-9128-2ddd66173494",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "vJbKrkcNQScKlHQG",
+  "tags": []
+}

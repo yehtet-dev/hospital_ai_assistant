@@ -1,0 +1,1212 @@
+{
+  "name": "03 - Doctor Dashboard (Google Sheets Web App)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "doctor-submit",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "dd45bc4e-e605-47fd-bf3b-7c3501d76639",
+      "name": "Doctor Submit Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        864
+      ],
+      "webhookId": "5391a6d8-40cd-44b0-ba27-a547cd3bce69"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst body = ($input.first().json.body || {});\nconst out = {\n  Patient_ID: String(body.Patient_ID || '').trim(),\n  Doctor_Instructions: String(body.Doctor_Instructions || ''),\n  Follow_Up_Date: String(body.Follow_Up_Date || '').trim(),\n  Signature: String(body.Signature || '').trim()\n};\nreturn [{ json: out }];\n"
+      },
+      "id": "53d99721-337a-4e72-a3ac-9b5d814c2ebf",
+      "name": "Prepare Submit Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 123456789,
+          "mode": "list",
+          "cachedResultName": "Patients",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=123456789"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Patient_ID",
+              "lookupValue": "={{ $json.Patient_ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd12f954-7195-4695-9c4c-a3755c61479e",
+      "name": "Read Patient",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -352,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 123456789,
+          "mode": "list",
+          "cachedResultName": "Patients",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=123456789"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient_ID": "={{ $('Prepare Submit Data').first().json.Patient_ID }}",
+            "Doctor_Instructions": "={{ $('Prepare Submit Data').first().json.Doctor_Instructions }}",
+            "Follow_Up_Date": "={{ $('Prepare Submit Data').first().json.Follow_Up_Date }}",
+            "Signature": "={{ $('Prepare Submit Data').first().json.Signature }}",
+            "Status": "Completed"
+          },
+          "matchingColumns": [
+            "Patient_ID"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Temperature_Celsius",
+              "displayName": "Temperature_Celsius",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Blood_Pressure_mmHg",
+              "displayName": "Blood_Pressure_mmHg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Heart_Rate_BPM",
+              "displayName": "Heart_Rate_BPM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SpO2",
+              "displayName": "SpO2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Instructions",
+              "displayName": "Doctor_Instructions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow_Up_Date",
+              "displayName": "Follow_Up_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Signature",
+              "displayName": "Signature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nurse Name",
+              "displayName": "Nurse Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cd1cb768-c9e3-49eb-8fb9-9659442e890e",
+      "name": "Update Patient Completed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -128,
+        864
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Live_Queue"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $('Read Patient').first().json.Doctor_Name }}"
+            },
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $('Read Patient').first().json.Date }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "b5257e35-f0f2-4b63-88ef-6e687382e836",
+      "name": "Read Live Queue",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        304,
+        896
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Patients"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $('Read Patient').first().json.Doctor_Name }}"
+            },
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $('Read Patient').first().json.Date }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Checked-in"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "50dd1fda-b57d-420e-a0e0-cded3c13123d",
+      "name": "Read All Checked-in",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst patient = $('Read Patient').first().json;\nconst queueItems = $('Update Queue Number').all();\nconst queue = queueItems.length ? queueItems[0].json : {};\nconst patients = $input.all().map(i => i.json).filter(r => r && r.Token_Number != null && r.Status === 'Checked-in');\n\nconst token = Number(patient.Token_Number) || 0;\nlet currentQueue = queue.Current_Queue_Number ? Number(queue.Current_Queue_Number) : NaN;\nif (isNaN(currentQueue)) currentQueue = token;\nconst newQueue = currentQueue + 1;\n\nconst avgTime = Number($(\"Get Doctor's Average Time\").first().json.Avg_Time) || 15;\nconst patientsFor30 = Math.ceil(30 / avgTime);\nconst patientsFor60 = Math.ceil(60 / avgTime);\nconst token30 = newQueue + patientsFor30;\nconst token60 = newQueue + patientsFor60;\n\nconst byToken = {};\npatients.forEach(p => { byToken[Number(p.Token_Number) || 0] = p; });\n\nconst turnPatient = byToken[newQueue] || null;\nconst alert30Patient = byToken[token30] || null;\nconst alert60Patient = byToken[token60] || null;\n\nreturn [{\n  json: {\n    newQueue,\n    token30,\n    token60,\n    avgTime,\n    doctor: patient.Doctor_Name,\n    date: patient.Date,\n    submittedPatientName: patient.Full_Name,\n    patientId: patient.Patient_ID,\n    turnPatient,\n    turnPatientFound: !!turnPatient,\n    turnToken: turnPatient ? Number(turnPatient.Token_Number) : null,\n    alert30Patient,\n    alert30Found: !!alert30Patient,\n    alert30PatientName: alert30Patient ? alert30Patient.Full_Name : null,\n    alert60Patient,\n    alert60Found: !!alert60Patient,\n    alert60PatientName: alert60Patient ? alert60Patient.Full_Name : null\n  }\n}];\n"
+      },
+      "id": "f9910aea-dbb9-4b31-aa1d-5b5d6cb7d5dd",
+      "name": "Compute Next Queue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Live_Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Doctor_Name": "={{ $('Read Patient').first().json.Doctor_Name }}",
+            "Date": "={{ $('Read Patient').first().json.Date }}",
+            "Current_Queue_Number": "={{ $json.newQueue }}",
+            "Queue_Status": "Active",
+            "Notes": "Advanced by doctor dashboard"
+          },
+          "matchingColumns": [
+            "Doctor_Name",
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Current_Queue_Number",
+              "displayName": "Current_Queue_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Queue_Status",
+              "displayName": "Queue_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e6352eec-f9e4-447b-916f-693ed6502d2a",
+      "name": "Upsert Live Queue",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1632,
+        864
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst data = $('Compute Next Queue').first().json;\nlet msg = 'Completed ' + data.submittedPatientName + '.';\nif (data.turnPatientFound) {\n  msg += ' Token #' + data.turnToken + ' (' + data.turnPatientName + ') called for Dr. ' + data.doctor + '.';\n} else {\n  msg += ' No more checked-in patients for Dr. ' + data.doctor + '.';\n}\nif (data.alert30Found) msg += ' 30min alert sent to ' + data.alert30PatientName + '.';\nif (data.alert60Found) msg += ' 60min alert sent to ' + data.alert60PatientName + '.';\n\nreturn [{\n  json: {\n    success: true,\n    message: msg,\n    nextToken: data.turnToken || null,\n    nextPatientName: data.turnPatientName || null,\n    token30: data.token30,\n    token60: data.token60\n  }\n}];\n"
+      },
+      "id": "62f196eb-3866-43c5-a1be-d7b569947571",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Compute Next Queue').first().json.turnPatient.Chat_ID }}",
+        "text": "={{ 'Hi ' + ($('Compute Next Queue').first().json.turnPatient.Full_Name || 'Patient') + ', Dr. ' + $('Compute Next Queue').first().json.doctor + ' is ready for you. Please enter the room. Token #' + $('Compute Next Queue').first().json.turnToken }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "cc908048-8432-448d-b5a5-cc55ec965bb7",
+      "name": "Send Turn Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        1104
+      ],
+      "webhookId": "c84c666d-3e91-41ab-add4-f6b795002182",
+      "credentials": {
+        "telegramApi": {
+          "id": "TWlA69tHPNjJo4sH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": $('Build Response').first().json.success, \"message\": $('Build Response').first().json.message, \"nextToken\": $('Build Response').first().json.nextToken, \"nextPatientName\": $('Build Response').first().json.nextPatientName } }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "46a249e8-a192-474e-9cfd-f0282a89937c",
+      "name": "Respond Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2208,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Doctors"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $('Read Patient').first().json.Doctor_Name }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "df869936-9831-43c5-ac2c-9d9a8b3846d3",
+      "name": "Get Doctor's Average Time",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        816,
+        864
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c86f618c-5727-480c-840a-30bdd87e67eb",
+              "leftValue": "={{ $('Compute Next Queue').first().json.turnPatientFound }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "48d72d30-3113-47db-9fd0-f212191032cd",
+      "name": "Turn Patient Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "46d1d815-f00a-4473-8bbb-6a50839d7c81",
+              "leftValue": "={{ $('Compute Next Queue').first().json.alert30Found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c2f5fe8c-276f-4e05-833f-d16b289e0a8a",
+      "name": "30min Alert Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3012a69d-1f4f-46fc-b2eb-5bdad5ba3ea1",
+              "leftValue": "={{ $('Compute Next Queue').first().json.alert60Found }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cf2523fb-4c65-43fb-a828-c1d7ed0f1df6",
+      "name": "60min Alert Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1632,
+        1424
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Compute Next Queue').first().json.alert30Patient.Chat_ID }}",
+        "text": "={{ 'Hi ' + ($('Compute Next Queue').first().json.alert30Patient.Full_Name || 'Patient') + ', Dr. ' + $('Compute Next Queue').first().json.doctor + ' will be ready for you in about 30 minutes. Token #' + $('Compute Next Queue').first().json.token30 }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "9dc73dea-3046-4b77-a009-78f0ffc81c3f",
+      "name": "Send 30min Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        1264
+      ],
+      "webhookId": "84cd7c98-238a-4465-9bf2-0a7ea46d9f3d",
+      "credentials": {
+        "telegramApi": {
+          "id": "TWlA69tHPNjJo4sH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Compute Next Queue').first().json.alert60Patient.Chat_ID }}",
+        "text": "={{ 'Hi ' + ($('Compute Next Queue').first().json.alert60Patient.Full_Name || 'Patient') + ', Dr. ' + $('Compute Next Queue').first().json.doctor + ' will be ready for you in about 60 minutes. Token #' + $('Compute Next Queue').first().json.token60 }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "1cb0829b-5d9d-413c-a447-222b6a0609c0",
+      "name": "Send 60min Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1920,
+        1424
+      ],
+      "webhookId": "43d71464-264a-4bb7-bfdd-67ee09664e10",
+      "credentials": {
+        "telegramApi": {
+          "id": "TWlA69tHPNjJo4sH",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888888,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient_ID": "={{ $('Prepare Submit Data').first().json.Patient_ID }}",
+            "Status": "Completed"
+          },
+          "matchingColumns": [
+            "Patient_ID"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Triage_Form_URL",
+              "displayName": "Triage_Form_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "QR_Image_URL",
+              "displayName": "QR_Image_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        112,
+        880
+      ],
+      "id": "aa0a459f-e798-406b-a98b-9a96b3074c57",
+      "name": "Update Appointment Complete",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n// Get Current Queue \nlet current_queue = $input.first().json.Current_Queue_Number;\n// Get Patient Token\nlet patient_token = $('Read Patient').first().json.Token_Number;\n// Check if current queue = patient token\n// if not equal means there is missed turn\n\nif (current_queue !== patient_token) {\n  current_queue = patient_token\n} else {\n  current_queue = current_queue\n}\n\nreturn {\n  row_number: input.row_number,\n  Id: input.Id,\n  Doctor_Name: input.Doctor_Name,\n  Current_Queue_Number: current_queue,\n  Notes: input.Notes,\n  Date: input.Date\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        896
+      ],
+      "id": "abb82732-196f-4e7f-bb00-ca198a69eae3",
+      "name": "Update Queue Number"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Doctor Submit Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Submit Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Submit Data": {
+      "main": [
+        [
+          {
+            "node": "Read Patient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Patient": {
+      "main": [
+        [
+          {
+            "node": "Update Patient Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Patient Completed": {
+      "main": [
+        [
+          {
+            "node": "Update Appointment Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Live Queue": {
+      "main": [
+        [
+          {
+            "node": "Update Queue Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read All Checked-in": {
+      "main": [
+        [
+          {
+            "node": "Compute Next Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Next Queue": {
+      "main": [
+        [
+          {
+            "node": "Upsert Live Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Live Queue": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Turn Patient Found?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "30min Alert Found?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "60min Alert Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Doctor's Average Time": {
+      "main": [
+        [
+          {
+            "node": "Read All Checked-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Turn Patient Found?": {
+      "main": [
+        [
+          {
+            "node": "Send Turn Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "30min Alert Found?": {
+      "main": [
+        [
+          {
+            "node": "Send 30min Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "60min Alert Found?": {
+      "main": [
+        [
+          {
+            "node": "Send 60min Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Appointment Complete": {
+      "main": [
+        [
+          {
+            "node": "Read Live Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Queue Number": {
+      "main": [
+        [
+          {
+            "node": "Get Doctor's Average Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f200daef-45b5-4196-b595-9e11ebf14934",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "kmYxAMWOVPu00cYJ",
+  "tags": []
+}

@@ -1,0 +1,671 @@
+{
+  "name": "02 - Nurse Triage (Vitals Update)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "clinic-triage",
+        "options": {}
+      },
+      "id": "14412b2b-e108-457d-a759-83913d5baf94",
+      "name": "Triage Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "0204aace-2ae4-4419-8f85-f9ade93ef0d7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99be52f2-0ef7-4105-9f47-dad98c0c032f",
+              "name": "Patient_ID",
+              "value": "={{ $json.body.Patient_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "81f0c5bd-c553-4833-9d67-bcd88b29a206",
+              "name": "Doctor_Name",
+              "value": "={{ $json.Doctor_Name || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "ced09376-cdb4-403a-b582-b69e03d2ed19",
+              "name": "Temperature_Celsius",
+              "value": "={{ $json.body.Temperature_Celsius }}",
+              "type": "string"
+            },
+            {
+              "id": "2cfea8d4-fde3-4e91-9a05-25cc3a49e022",
+              "name": "Blood_Pressure_mmHg",
+              "value": "={{ $json.body.Blood_Pressure_mmHg }}",
+              "type": "string"
+            },
+            {
+              "id": "35d6fd03-19da-4c6c-9aaf-a2c1594dbb48",
+              "name": "Heart_Rate_BPM",
+              "value": "={{ $json.body.Heart_Rate_BPM }}",
+              "type": "string"
+            },
+            {
+              "id": "c4bad56c-e1f4-418f-b552-81bdfddeaedf",
+              "name": "SpO2",
+              "value": "={{ $json.body.SpO2 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "82967df3-ace4-4dc1-b698-0aa046231396",
+      "name": "Map Triage Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888888,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Patient_ID",
+              "lookupValue": "={{ $json.Patient_ID }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "13688007-e114-4de2-b026-ff168c1bd24d",
+      "name": "Read Appointment by ID",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 123456789,
+          "mode": "list",
+          "cachedResultName": "Patients",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=123456789"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.Timestamp }}",
+            "Patient_ID": "={{ $json.Patient_ID }}",
+            "Full_Name": "={{ $json.Full_Name }}",
+            "Age": "={{ $json.Age }}",
+            "Sex": "={{ $json.Sex }}",
+            "Phone_Number": "={{ $json.Phone_Number }}",
+            "Address": "={{ $json.Address }}",
+            "Primary_Symptom": "={{ $json.Primary_Symptom }}",
+            "Doctor_Name": "={{ $json.Doctor_Name }}",
+            "Date": "={{ $json.Date }}",
+            "Visit_Type": "={{ $json.Visit_Type }}",
+            "Chat_ID": "={{ $json.Chat_ID }}",
+            "Token_Number": "={{ $json.Token_Number }}",
+            "Temperature_Celsius": "={{ $('Map Triage Data').item.json.Temperature_Celsius }}",
+            "Blood_Pressure_mmHg": "={{ $('Map Triage Data').item.json.Blood_Pressure_mmHg }}",
+            "Heart_Rate_BPM": "={{ $('Map Triage Data').item.json.Heart_Rate_BPM }}",
+            "SpO2": "={{ $('Map Triage Data').item.json.SpO2 }}",
+            "Status": "Checked in"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Temperature_Celsius",
+              "displayName": "Temperature_Celsius",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Blood_Pressure_mmHg",
+              "displayName": "Blood_Pressure_mmHg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Heart_Rate_BPM",
+              "displayName": "Heart_Rate_BPM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "SpO2",
+              "displayName": "SpO2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Instructions",
+              "displayName": "Doctor_Instructions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow_Up_Date",
+              "displayName": "Follow_Up_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "7e260690-a9d3-4b33-ace3-072f1b193a64",
+      "name": "Append Checked-in Patient",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888888,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient_ID": "={{ $json.Patient_ID }}",
+            "Status": "Checked-in"
+          },
+          "matchingColumns": [
+            "Patient_ID"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Triage_Form_URL",
+              "displayName": "Triage_Form_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "QR_Image_URL",
+              "displayName": "QR_Image_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "64bacac3-1d34-4ed3-8c49-bc40ffa2922c",
+      "name": "Update Appointment Status",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        672,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "={{ 'Hi ' + ($json.Full_Name || 'Patient') + ', your vitals have been recorded. Status: Checked-in' + ($json.Doctor_Name ? '. Doctor: ' + $json.Doctor_Name : '') + '. Temp: ' + ($json.Temperature_Celsius || '-') + 'C, BP: ' + ($json.Blood_Pressure_mmHg || '-') + '. Please wait for your turn.' }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "547acedb-88eb-4483-943b-d8f4aa3a33e0",
+      "name": "Notify Checked-in",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        0
+      ],
+      "webhookId": "e1153491-a3ed-49f0-a4ed-eedff9d97b9e",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "39eb8e45-ba45-483c-b70f-e2f4d3133864",
+      "name": "NoOp",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Triage Webhook": {
+      "main": [
+        [
+          {
+            "node": "Map Triage Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Triage Data": {
+      "main": [
+        [
+          {
+            "node": "Read Appointment by ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Appointment by ID": {
+      "main": [
+        [
+          {
+            "node": "Append Checked-in Patient",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Appointment Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Checked-in Patient": {
+      "main": [
+        [
+          {
+            "node": "Notify Checked-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Appointment Status": {
+      "main": [
+        [
+          {
+            "node": "NoOp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "33c358f5-d067-4dc2-b2e8-3d2bb230b71a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "TNhoGRQYJept0hOZ",
+  "tags": []
+}
