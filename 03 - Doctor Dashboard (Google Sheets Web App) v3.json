@@ -16,7 +16,7 @@
         -704,
         848
       ],
-      "webhookId": "5391a6d8-40cd-44b0-ba27-a547cd3bce69"
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -36,7 +36,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -77,7 +77,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -352,7 +352,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -396,7 +396,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -458,7 +458,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -605,7 +605,7 @@
         1984,
         1088
       ],
-      "webhookId": "c84c666d-3e91-41ab-add4-f6b795002182",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -643,7 +643,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -793,7 +793,7 @@
         1984,
         1248
       ],
-      "webhookId": "84cd7c98-238a-4465-9bf2-0a7ea46d9f3d",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -817,7 +817,7 @@
         1984,
         1408
       ],
-      "webhookId": "43d71464-264a-4bb7-bfdd-67ee09664e10",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -826,7 +826,6 @@
       }
     }
   ],
-  "pinData": {},
   "connections": {
     "Doctor Submit Webhook": {
       "main": [

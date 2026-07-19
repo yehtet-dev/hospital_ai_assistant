@@ -16,7 +16,7 @@
         4336,
         2432
       ],
-      "webhookId": "9bde7bdd-d4a4-4415-921e-17b4e19b8449",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -65,7 +65,7 @@
         "documentId": {
           "__rl": true,
           "mode": "list",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -145,7 +145,7 @@
         6464,
         2384
       ],
-      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -232,7 +232,7 @@
         4928,
         2816
       ],
-      "webhookId": "18f6f3e2-5de9-49a2-81c1-08db170c20bf"
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -282,7 +282,7 @@
         5600,
         3264
       ],
-      "webhookId": "f7b1bc36-0a2e-4d4d-876b-8672d2d6933f",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -304,7 +304,7 @@
         5600,
         3456
       ],
-      "webhookId": "0e43aab9-1a9e-453b-bdaf-85a1ee1c0ed2",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -343,7 +343,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -388,7 +388,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -506,7 +506,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -550,7 +550,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -623,7 +623,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -888,7 +888,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -941,7 +941,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -1091,7 +1091,7 @@
         6480,
         2800
       ],
-      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -1115,7 +1115,7 @@
         6512,
         2864
       ],
-      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -1139,7 +1139,7 @@
         6528,
         3024
       ],
-      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -1306,7 +1306,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}",
-        "text": "=<a href=\"https://docs.google.com/forms/d/e/1FAIpQLSfqrTiZ7s-HF6untgKG6s4XQ6EAaJRIBnuSI2LvL6EcvPLXWw/viewform?usp=pp_url&amp;entry.1887983752={{ encodeURIComponent($fromAI('patientName', 'Full name of the patient')) }}&amp;entry.1600812900={{ encodeURIComponent($fromAI('doctorName', 'Exact doctor name from the roster')) }}&amp;entry.384620257={{ encodeURIComponent($fromAI('appointmentDate', 'Appointment date in YYYY-MM-DD')) }}&amp;entry.1063399280={{ $('Telegram Booking Trigger').first().json.message.chat.id }}\">🗓️ ကြိုတင်စာရင်းသွင်းရန် (Book an Appointment)</a>\n",
+        "text": "=<a href=\"https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/viewform?usp=pp_url&amp;entry.1887983752={{ encodeURIComponent($fromAI('patientName', 'Full name of the patient')) }}&amp;entry.1600812900={{ encodeURIComponent($fromAI('doctorName', 'Exact doctor name from the roster')) }}&amp;entry.384620257={{ encodeURIComponent($fromAI('appointmentDate', 'Appointment date in YYYY-MM-DD')) }}&amp;entry.1063399280={{ $('Telegram Booking Trigger').first().json.message.chat.id }}\">🗓️ ကြိုတင်စာရင်းသွင်းရန် (Book an Appointment)</a>\n",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1320,7 +1320,7 @@
       ],
       "id": "0d5f897c-ebed-4631-bebc-4d5971055ecb",
       "name": "Send Prefilled Appointment Link",
-      "webhookId": "5fbccbfc-c7f7-4c87-9a74-114f9a4d5d9e",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -1333,7 +1333,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -1371,38 +1371,6 @@
       ]
     }
   ],
-  "pinData": {
-    "Telegram Booking Trigger": [
-      {
-        "json": {
-          "update_id": 290627666,
-          "message": {
-            "message_id": 640,
-            "from": {
-              "id": 8455677812,
-              "is_bot": false,
-              "first_name": "Ye Htet",
-              "last_name": "Soe",
-              "username": "kiran_soe",
-              "language_code": "en"
-            },
-            "chat": {
-              "id": 8455677812,
-              "first_name": "Ye Htet",
-              "last_name": "Soe",
-              "username": "kiran_soe",
-              "type": "private"
-            },
-            "date": 1784213688,
-            "text": "အလှည့်ရောက်ပြီလား"
-          }
-        },
-        "pairedItem": {
-          "item": 0
-        }
-      }
-    ]
-  },
   "connections": {
     "Telegram Booking Trigger": {
       "main": [

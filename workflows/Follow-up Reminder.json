@@ -60,10 +60,10 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
@@ -101,7 +101,7 @@
     {
       "parameters": {
         "chatId": "={{ $json.Chat_ID }}",
-        "text": "={{ 'Hi ' + ($json.Full_Name || 'Patient') + ', you have a doctor appointment scheduled for tomorrow' + ($json.Doctor_Name ? ' with ' + $json.Doctor_Name : '') + '.\\n\\nDoctor\\'s Instructions: ' + ($json.Doctor_Instructions || 'None') + '\\n\\nClick here to book your queue token: https://docs.google.com/forms/d/e/1FAIpQLSfqrTiZ7s-HF6untgKG6s4XQ6EAaJRIBnuSI2LvL6EcvPLXWw/viewform?usp=pp_url&entry.1887983752=' + encodeURIComponent($json.Full_Name || '') + '&entry.1045079630=' + encodeURIComponent($json.Age || '') + '&entry.338160673=' + encodeURIComponent($json.Sex || '') + '&entry.1418640521=' + encodeURIComponent($json.Phone_Number || '') + '&entry.101475844=' + encodeURIComponent($json.Address || '') + '&entry.1600812900=' + encodeURIComponent($json.Doctor_Name || '') + '&entry.384620257=' + encodeURIComponent($json.Follow_Up_Date || '') + '&entry.845404774=Follow-up&entry.1063399280=' + encodeURIComponent($json.Chat_ID || '') }}",
+        "text": "={{ 'Hi ' + ($json.Full_Name || 'Patient') + ', you have a doctor appointment scheduled for tomorrow' + ($json.Doctor_Name ? ' with ' + $json.Doctor_Name : '') + '.\\n\\nDoctor\\'s Instructions: ' + ($json.Doctor_Instructions || 'None') + '\\n\\nClick here to book your queue token: https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/viewform?usp=pp_url&entry.1887983752=' + encodeURIComponent($json.Full_Name || '') + '&entry.1045079630=' + encodeURIComponent($json.Age || '') + '&entry.338160673=' + encodeURIComponent($json.Sex || '') + '&entry.1418640521=' + encodeURIComponent($json.Phone_Number || '') + '&entry.101475844=' + encodeURIComponent($json.Address || '') + '&entry.1600812900=' + encodeURIComponent($json.Doctor_Name || '') + '&entry.384620257=' + encodeURIComponent($json.Follow_Up_Date || '') + '&entry.845404774=Follow-up&entry.1063399280=' + encodeURIComponent($json.Chat_ID || '') }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -115,7 +115,7 @@
         64,
         272
       ],
-      "webhookId": "62b19655-7725-423a-8d47-4acb66668908",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -124,16 +124,6 @@
       }
     }
   ],
-  "pinData": {
-    "9 AM Daily": [
-      {
-        "json": {
-          "name": "First item",
-          "code": 1
-        }
-      }
-    ]
-  },
   "connections": {
     "9 AM Daily": {
       "main": [

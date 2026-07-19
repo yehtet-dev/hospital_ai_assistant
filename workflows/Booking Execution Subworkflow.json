@@ -6,7 +6,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -46,7 +46,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -136,17 +136,17 @@
         "operation": "append",
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 888888,
           "mode": "list",
           "cachedResultName": "Appointments",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=888888"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -375,7 +375,7 @@
         -1008,
         496
       ],
-      "webhookId": "65653a8f-59bd-4e40-8023-8f1767974d7f"
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -392,7 +392,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const p = $input.first().json;\nconst patientId = 'P-' + $now.toFormat('yyyyMMddHHmmss') + '-' + $now.toFormat('SSS');\nconst triageUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSclqggNnB0sAmgqRg6gdiA7Gia7RWxuMbZVjeoF9G0JMDj7Kg/viewform?usp=pp_url&entry.347884731=' + encodeURIComponent(patientId);\nconst qrUrl = 'https://quickchart.io/qr?text=' + encodeURIComponent(triageUrl) + '&size=300&margin=2';\nreturn [{\n  json: {\n    ...p,\n    Timestamp: $now.toFormat('yyyy-MM-dd HH:mm:ss'),\n    Patient_ID: patientId,\n    Full_Name: p.patientName,\n    Phone_Number: p.phone,\n    Primary_Symptom: p.symptom,\n    Doctor_Name: p.doctorName,\n    Date: p.appointmentDate,\n    Chat_ID: p.chatId,\n    Token_Number: p.tokenNumber,\n    Status: 'Scheduled',\n    Triage_Form_URL: triageUrl,\n    QR_Image_URL: qrUrl,\n    Age: p.Age || '',\n    Sex: p.Sex || '',\n    Address: p.Address || '',\n    Visit_Type: p.Visit_Type || 'New'\n  }\n}];\n"
+        "jsCode": "const p = $input.first().json;\nconst patientId = 'P-' + $now.toFormat('yyyyMMddHHmmss') + '-' + $now.toFormat('SSS');\nconst triageUrl = 'https://docs.google.com/forms/d/e/YOUR_GOOGLE_FORM_ID/viewform?usp=pp_url&entry.347884731=' + encodeURIComponent(patientId);\nconst qrUrl = 'https://quickchart.io/qr?text=' + encodeURIComponent(triageUrl) + '&size=300&margin=2';\nreturn [{\n  json: {\n    ...p,\n    Timestamp: $now.toFormat('yyyy-MM-dd HH:mm:ss'),\n    Patient_ID: patientId,\n    Full_Name: p.patientName,\n    Phone_Number: p.phone,\n    Primary_Symptom: p.symptom,\n    Doctor_Name: p.doctorName,\n    Date: p.appointmentDate,\n    Chat_ID: p.chatId,\n    Token_Number: p.tokenNumber,\n    Status: 'Scheduled',\n    Triage_Form_URL: triageUrl,\n    QR_Image_URL: qrUrl,\n    Age: p.Age || '',\n    Sex: p.Sex || '',\n    Address: p.Address || '',\n    Visit_Type: p.Visit_Type || 'New'\n  }\n}];\n"
       },
       "id": "30428523-f8f1-48cd-830b-0e4b41e521a3",
       "name": "Generate QR Code",
@@ -421,7 +421,7 @@
         720,
         480
       ],
-      "webhookId": "b6c33830-5f54-4ab5-bc6e-ad52bd366ac2",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "nCr3pckW7faWxUgS",
@@ -434,17 +434,17 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 1005762907,
           "mode": "list",
           "cachedResultName": "Doctors",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=1005762907"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=1005762907"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -621,7 +621,6 @@
       ]
     }
   ],
-  "pinData": {},
   "connections": {
     "Registration Webhook": {
       "main": [

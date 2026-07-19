@@ -16,7 +16,7 @@
         -768,
         864
       ],
-      "webhookId": "5391a6d8-40cd-44b0-ba27-a547cd3bce69"
+      "webhookId": "YOUR_WEBHOOK_ID"
     },
     {
       "parameters": {
@@ -35,17 +35,17 @@
       "parameters": {
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 123456789,
           "mode": "list",
           "cachedResultName": "Patients",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=123456789"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=123456789"
         },
         "filtersUI": {
           "values": [
@@ -78,17 +78,17 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 123456789,
           "mode": "list",
           "cachedResultName": "Patients",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=123456789"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=123456789"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -339,7 +339,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -383,7 +383,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -445,7 +445,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -576,7 +576,7 @@
         1920,
         1104
       ],
-      "webhookId": "c84c666d-3e91-41ab-add4-f6b795002182",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -614,7 +614,7 @@
         "documentId": {
           "__rl": true,
           "mode": "id",
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+          "value": "YOUR_GOOGLE_SHEET_ID"
         },
         "sheetName": {
           "__rl": true,
@@ -764,7 +764,7 @@
         1920,
         1264
       ],
-      "webhookId": "84cd7c98-238a-4465-9bf2-0a7ea46d9f3d",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -788,7 +788,7 @@
         1920,
         1424
       ],
-      "webhookId": "43d71464-264a-4bb7-bfdd-67ee09664e10",
+      "webhookId": "YOUR_WEBHOOK_ID",
       "credentials": {
         "telegramApi": {
           "id": "TWlA69tHPNjJo4sH",
@@ -801,17 +801,17 @@
         "operation": "update",
         "documentId": {
           "__rl": true,
-          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "value": "YOUR_GOOGLE_SHEET_ID",
           "mode": "list",
           "cachedResultName": "Smart  Clinic",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit?usp=drivesdk"
         },
         "sheetName": {
           "__rl": true,
           "value": 888888,
           "mode": "list",
           "cachedResultName": "Appointments",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=888888"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -1014,7 +1014,6 @@
       "name": "Update Queue Number"
     }
   ],
-  "pinData": {},
   "connections": {
     "Doctor Submit Webhook": {
       "main": [
