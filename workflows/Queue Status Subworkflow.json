@@ -1,0 +1,262 @@
+{
+  "name": "Queue Status Subworkflow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatId"
+            }
+          ]
+        }
+      },
+      "id": "f8a1b366-9587-49f0-a30f-d33f78dded21",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { output: $json.reply } }];"
+      },
+      "id": "8909ba78-a1c2-425b-80ca-f1f0d6d73102",
+      "name": "Return No Appointment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let current_token = $input.first().json.Current_Queue_Number;\n\n// Added '?' (optional chaining) to prevent the workflow from crashing if no row is found\nlet patient_token = $('Get Appointment').first()?.json?.Token_Number; \n\n// 1. FILTER: Check if the appointment exists\nif (!patient_token) {\n  return {\n    hasAppointment: false,\n    reply: \"You do not have an active appointment booked for today.\"\n  };\n}\n\n// 2. If it does exist, calculate the queue as normal\nconst queue = patient_token - current_token;\nlet turn_msg = \"\";\n\nif (queue === 0) {\n  turn_msg = \"အလှည့်ရောက်ပါပြီရှင့်၊ ဆရာဝန်နဲ့ ပြလို ရပါပြီရှင့်\";\n} else if (queue < 0) {\n  turn_msg = \"အလှည့်ကျော်သွားပါပြီရှင့်၊ ပြန်ပြီး appointmentပြန်ယူပေးပါရှင်\";\n} else if (queue > 0) {\n  turn_msg =  \" ရှေ့မှာ လူနာ\" +queue + \"ယောက်ရှိပါသေးတယ်ရှင့်\";\n}\n\nreturn {\n  hasAppointment: true,\n  reply: turn_msg,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        352
+      ],
+      "id": "f07152e6-0fd0-48ea-a165-c4e80bfa2b89",
+      "name": "Calculate Turn"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 101010,
+          "mode": "list",
+          "cachedResultName": "Live_Queue",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=101010"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $json.Doctor_Name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -528,
+        352
+      ],
+      "id": "28558b58-66ef-4533-bcde-14efb4ba4bef",
+      "name": "Get Current Queue",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 888888,
+          "mode": "list",
+          "cachedResultName": "Appointments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit#gid=888888"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Chat_ID",
+              "lookupValue": "={{ $json.chatId }}"
+            },
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $now.toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -736,
+        352
+      ],
+      "id": "23e2becf-9f0a-4cb6-8d60-00d50e302f67",
+      "name": "Get Appointment",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.hasAppointment }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "d0000000-0000-0000-0000-000000000001"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d368193e-8c3c-4099-87a3-518da8753b82",
+      "name": "Has Appointment?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { output: $json.reply } }];"
+      },
+      "id": "f146ac3b-b40b-4272-b4e6-4c786f6d8e73",
+      "name": "Return Turn Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        112
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Current Queue": {
+      "main": [
+        [
+          {
+            "node": "Calculate Turn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Appointment": {
+      "main": [
+        [
+          {
+            "node": "Get Current Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Turn": {
+      "main": [
+        [
+          {
+            "node": "Has Appointment?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Appointment?": {
+      "main": [
+        [
+          {
+            "node": "Return Turn Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return No Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3f4cbe0a-4249-4e68-9e96-ac6e1639562a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "2IV6gd5Mzf4oiOge",
+  "tags": []
+}

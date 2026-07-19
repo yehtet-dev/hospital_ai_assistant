@@ -1,0 +1,185 @@
+{
+  "name": "Follow-up Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "976d7662-9810-4917-a9ba-a169c9e94fe6",
+      "name": "9 AM Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b2a99b5-1c5d-4030-b621-edb07dcd7704",
+              "name": "Tomorrow",
+              "value": "={{ $today.plus(1, 'day').toFormat('yyyy-MM-dd') }}",
+              "type": "string"
+            },
+            {
+              "id": "4249a39a-e0d1-40fe-be29-c47ec4a99385",
+              "name": "",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "fcf3beea-2b4f-4b2b-ba11-7b086e82f9e6",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3cf3046a-e806-4088-ba97-7bbaa73e97d6",
+      "name": "Tomorrow Date",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU",
+          "mode": "list",
+          "cachedResultName": "Smart  Clinic",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Patients"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Follow_Up_Date",
+              "lookupValue": "={{ $json.Tomorrow }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "13c65b76-a633-42c8-bae9-6191891203ae",
+      "name": "Read Follow-ups",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -176,
+        272
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "={{ 'Hi ' + ($json.Full_Name || 'Patient') + ', you have a doctor appointment scheduled for tomorrow' + ($json.Doctor_Name ? ' with ' + $json.Doctor_Name : '') + '.\\n\\nDoctor\\'s Instructions: ' + ($json.Doctor_Instructions || 'None') + '\\n\\nClick here to book your queue token: https://docs.google.com/forms/d/e/1FAIpQLSfqrTiZ7s-HF6untgKG6s4XQ6EAaJRIBnuSI2LvL6EcvPLXWw/viewform?usp=pp_url&entry.1887983752=' + encodeURIComponent($json.Full_Name || '') + '&entry.1045079630=' + encodeURIComponent($json.Age || '') + '&entry.338160673=' + encodeURIComponent($json.Sex || '') + '&entry.1418640521=' + encodeURIComponent($json.Phone_Number || '') + '&entry.101475844=' + encodeURIComponent($json.Address || '') + '&entry.1600812900=' + encodeURIComponent($json.Doctor_Name || '') + '&entry.384620257=' + encodeURIComponent($json.Follow_Up_Date || '') + '&entry.845404774=Follow-up&entry.1063399280=' + encodeURIComponent($json.Chat_ID || '') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "d8dbc881-7b02-408e-94dd-74321d808fa7",
+      "name": "Send Follow-up Reminder",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        272
+      ],
+      "webhookId": "62b19655-7725-423a-8d47-4acb66668908",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "9 AM Daily": [
+      {
+        "json": {
+          "name": "First item",
+          "code": 1
+        }
+      }
+    ]
+  },
+  "connections": {
+    "9 AM Daily": {
+      "main": [
+        [
+          {
+            "node": "Tomorrow Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tomorrow Date": {
+      "main": [
+        [
+          {
+            "node": "Read Follow-ups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Follow-ups": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "661ab26e-a4ec-44cb-ac94-f17cc8fe8fd7",
+  "meta": {
+    "templateId": "rag-starter-template",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "oBipJxBtFTrEtpoE",
+  "tags": []
+}

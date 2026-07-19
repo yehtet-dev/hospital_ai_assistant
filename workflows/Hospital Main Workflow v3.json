@@ -1,0 +1,1786 @@
+{
+  "name": "Hospital Main Workflow v3",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "115c3eb4-2e84-497b-928e-daa190af792d",
+      "name": "Telegram Booking Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        4336,
+        2432
+      ],
+      "webhookId": "9bde7bdd-d4a4-4415-921e-17b4e19b8449",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.from.is_bot }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              },
+              "id": "885fbf2c-a05b-4d32-bf60-db2d55907022"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "id": "18962dec-79af-4db8-9471-e8f14d69584c",
+      "name": "Filter Bot Messages",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.1,
+      "position": [
+        4512,
+        2464
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Doctors"
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "14152eb3-f939-4d05-a206-14136108db37",
+      "name": "Fetch Doctor Roster",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4896,
+        2336
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {
+          "maxTokens": 4096,
+          "temperature": 0.3,
+          "maxRetries": 2
+        }
+      },
+      "id": "76da6171-5094-4be2-b091-5ac4300e26d3",
+      "name": "OpenRouter Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5712,
+        2576
+      ],
+      "credentials": {
+        "openRouterApi": {
+          "id": "DyAwuPuhsaOnIkU4",
+          "name": "Hopital AI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}"
+      },
+      "id": "df63fb0d-6ebd-49bd-b86a-f48287738318",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        5328,
+        2624
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}",
+        "text": "={{ $json.output.replace(/\\*/g, '•') }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "10086b8f-ef34-4141-8e05-3596727f81dc",
+      "name": "Send Final Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6464,
+        2384
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 📅 Booking — Agentic Architecture\n\n**Flow:** Telegram Trigger → Filter → Fetch Doctors → AI Orchestrator → Send Reply\n\n**Orchestrator** (Gemini 2.5 Flash + Window Buffer Memory per chat ID) has 1 tool:\n- `BookingExecutionAgent` — called ONLY when all 5 fields confirmed (Name, Phone, Symptom, Doctor, Date); checks slot availability vs max_patients_per_day; suggests next date if full; creates Airtable record; returns token number\n\nIntent detection and field collection are handled directly by the Orchestrator system prompt via conversation memory.",
+        "height": 220,
+        "width": 1400,
+        "color": 2
+      },
+      "id": "bbd0e75d-45bf-4b7f-98ab-e7fab8e0c3fc",
+      "name": "Sticky Note Booking",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4784,
+        2000
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🏥 Queue Management\n\nNurse station advances queue via webhook.\nPatients check wait time via Telegram.",
+        "height": 800,
+        "width": 1800,
+        "color": 3
+      },
+      "id": "5401a85d-98aa-4cf1-b627-44500611edad",
+      "name": "Sticky Note 916611bf",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4576,
+        3168
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📬 Automated Follow-ups\n\nDaily at 9 AM:\n- Medication reminders (1 day after)\n- Follow-up check-ins (14 days after)",
+        "height": 400,
+        "width": 1200,
+        "color": 4
+      },
+      "id": "66f522dc-7ad3-46ea-b009-67d790a918a9",
+      "name": "Sticky Note c80b44fe",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4880,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Instructions\n\n1. Create Airtable base with tables:\n   - doctors (Doctor_Name, specialty, avg_consultation_minutes, max_patients_per_day)\n   - appointments (doctor_name, patient_name, phone, complaint, appointment_date [date], token_number [number], telegram_chat_id [text], status [single select: scheduled/completed/cancelled])\n   - queue_sessions (doctor_id [linked to doctors], session_date [date], current_number [number], status [single select: active/closed])\n\n2. Create Telegram bot via @BotFather\n3. Configure Airtable and Telegram credentials in n8n\n4. Initialize queue_sessions daily for each doctor",
+        "height": 350,
+        "width": 900,
+        "color": 5
+      },
+      "id": "b8b1871f-7d6a-4c32-90fb-f48df9dddba1",
+      "name": "Sticky Note 561883e8",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4928,
+        4688
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "advance-queue",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "41b387c6-2f1d-4116-a459-cb8c92db6cc0",
+      "name": "Nurse Queue Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        4928,
+        2816
+      ],
+      "webhookId": "18f6f3e2-5de9-49a2-81c1-08db170c20bf"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"currentNumber\": $json.Current_Queue_Number } }}",
+        "options": {}
+      },
+      "id": "dcecda84-ab68-446b-9174-2e09bb3765b4",
+      "name": "Respond With Queue Number",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5552,
+        2992
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "359fef64-c4e7-45d4-8ab6-2f765f615f50",
+      "name": "Daily 9 AM Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        4928,
+        3360
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "=💊 Medication Reminder\n\nHello {{ $json.Full_Name }},\n\nThis is a friendly reminder to take your prescribed medications as directed by your doctor.\n\nIf you have any questions or concerns, please contact the clinic.\n\nStay healthy! 🏥",
+        "additionalFields": {}
+      },
+      "id": "861d7e4e-f7b1-4c2e-97c5-89843d973506",
+      "name": "Send Medication Reminder",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5600,
+        3264
+      ],
+      "webhookId": "f7b1bc36-0a2e-4d4d-876b-8672d2d6933f",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "=🩺 Follow-up Check-in\n\nHello {{ $json.Full_Name }},\n\nIt has been 2 weeks since your last visit. We hope you are feeling better!\n\nIf you are experiencing any ongoing symptoms or have concerns, please schedule a follow-up appointment.\n\nReply to this message or call the clinic to book.\n\nTake care! 💙",
+        "additionalFields": {}
+      },
+      "id": "47b8de4c-7308-4aa5-a9ae-8d281b611295",
+      "name": "Send Follow-up Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5600,
+        3456
+      ],
+      "webhookId": "0e43aab9-1a9e-453b-bdaf-85a1ee1c0ed2",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "id": "9c8ac76d-0098-4973-9e14-ac398dcf32d5",
+      "name": "Split Yesterday Appointments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5376,
+        3264
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "id": "d8678043-a1ba-49bc-b7a2-fa21accb02d9",
+      "name": "Split 14 Days Appointments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5376,
+        3456
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Live_Queue"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $json.body.doctorName }}"
+            },
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $today.toFormat('yyyy-MM-dd') }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "78f7d6c0-ebc7-46fd-ab71-9094f1522276",
+      "name": "Get Queue Session",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5152,
+        2816
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Live_Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $json.Id }}",
+            "Current_Queue_Number": "={{ $json.Current_Queue_Number + 1 }}"
+          },
+          "matchingColumns": [
+            "Id"
+          ],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Current_Queue_Number",
+              "displayName": "Current_Queue_Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Queue_Status",
+              "displayName": "Queue_Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Last_Updated",
+              "displayName": "Last_Updated",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e83d511-a69f-4658-9859-e8248cdeccfb",
+      "name": "Increment Queue Number",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5376,
+        2816
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $today.minus({ days: 1 }).toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Completed"
+            }
+          ]
+        },
+        "combineFilters": "and",
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "f8ceafba-7b3b-42fb-b5cc-66f91d5e180c",
+      "name": "Get Yesterday Appointments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5152,
+        3264
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $today.minus({ days: 14 }).toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Completed"
+            }
+          ]
+        },
+        "combineFilters": "and",
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "5a71398d-43e9-4fcf-8adc-8b0a80821b5c",
+      "name": "Get 14 Days Ago Appointments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5152,
+        3456
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const all = $input.all();\nconst doctors = all.filter(i => i.json.hasOwnProperty('Specialty')).map(i => i.json);\nconst appointments = all.filter(i => !i.json.hasOwnProperty('Specialty')).map(i => i.json);\n\nconst weekdayOf = d => d.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });\nconst iso = d => d.toISOString().slice(0, 10);\nconst today = new Date();\nconst days14 = [];\nfor (let i = 0; i < 14; i++) {\n  const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + i));\n  days14.push({ date: iso(d), weekday: weekdayOf(d) });\n}\nconst calendar = days14.map(d => `${d.date} = ${d.weekday}${d.date === days14[0].date ? ' (TODAY)' : ''}`).join('\\n');\n\nconst roster = doctors.map(doc => {\n  const avail = (doc.Available_Days || '').toString().split(',').map(s => s.trim()).filter(Boolean);\n  const maxPerDay = doc.max_patients_per_day || 20;\n  const hours = doc.Available_Time || 'N/A';\n  const avg = doc.Avg_Time || 15;\n  const bookable = days14.filter(day => avail.includes(day.weekday)).map(day => {\n    const count = appointments.filter(a => a.Doctor_Name === doc.Doctor_Name && a.Date === day.date && a.Status !== 'Completed' && a.Status !== 'Cancelled').length;\n    const left = maxPerDay - count;\n    return `${day.date}${left <= 0 ? ' (FULL)' : ` (${left} slot${left === 1 ? '' : 's'} left)`}`;\n  }).join(', ') || 'none in next 14 days';\n  return `- ${doc.Doctor_Name} (${doc.Specialty || 'General'}): days ${avail.join('/') || 'N/A'}, hours ${hours}, avg consult ${avg} mins, max patients per day ${maxPerDay}\\n  Bookable dates (next 14 days): ${bookable}`;\n}).join('\\n');\n\nreturn [{ json: { roster, calendar, today: days14[0].date, todayWeekday: days14[0].weekday, total_doctors: doctors.length } }];\n"
+      },
+      "id": "18b2f2f6-370d-489e-ba05-4f72c2524fae",
+      "name": "Code in JavaScript",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5104,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        5904,
+        2656
+      ],
+      "id": "159100bb-d0d7-4c7f-ab4e-76a14d6233fc",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Split 14 Days Appointments').item.json.Timestamp }}",
+            "Full_Name": "={{ $('Split 14 Days Appointments').item.json.Full_Name }}",
+            "Doctor_Name": "={{ $('Split 14 Days Appointments').item.json.Doctor_Name }}",
+            "Date": "={{ $('Split 14 Days Appointments').item.json.Date }}",
+            "Status": "followed_up"
+          },
+          "matchingColumns": [
+            "Timestamp",
+            "Full_Name",
+            "Doctor_Name",
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Patient_ID",
+              "displayName": "Patient_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Full_Name",
+              "displayName": "Full_Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Age",
+              "displayName": "Age",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sex",
+              "displayName": "Sex",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone_Number",
+              "displayName": "Phone_Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Primary_Symptom",
+              "displayName": "Primary_Symptom",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Doctor_Name",
+              "displayName": "Doctor_Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Visit_Type",
+              "displayName": "Visit_Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Chat_ID",
+              "displayName": "Chat_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Token_Number",
+              "displayName": "Token_Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Triage_Form_URL",
+              "displayName": "Triage_Form_URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "QR_Image_URL",
+              "displayName": "QR_Image_URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e59d559e-3803-4b76-ad05-86328cab604c",
+      "name": "Mark As Followed Up",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5824,
+        3456
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Check the patient's live queue status for TODAY. Call this whenever the patient asks about their queue position, token status, whether it is their turn, or waiting time. Pass the patient's chatId.",
+        "workflowId": {
+          "__rl": true,
+          "value": "2IV6gd5Mzf4oiOge",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/2IV6gd5Mzf4oiOge"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatId": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}"
+          },
+          "matchingColumns": [
+            "chatId"
+          ],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "ace353ea-5242-4186-8ad5-932a998f37b8",
+      "name": "CheckQueueStatus",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        6176,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Doctors"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $('Nurse Queue Webhook').first().json.body.doctorName }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "523542cd-f894-4272-a9dd-3afb016848c2",
+      "name": "Get Doctor's Average Time",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5584,
+        2816
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentQueue = $('Increment Queue Number').first().json.Current_Queue_Number;\nconst avgTime = $input.first().json.Avg_Time || 15;\nconst patientsFor30Min = Math.ceil(30 / avgTime);\nconst patientsFor60Min = Math.ceil(60 / avgTime);\nreturn [{ json: {\n  token0: currentQueue,\n  token30: currentQueue + patientsFor30Min,\n  token60: currentQueue + patientsFor60Min,\n  currentDoctor: $('Nurse Queue Webhook').first().json.body.doctorName\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5792,
+        2816
+      ],
+      "id": "83cbc0e6-4f32-4a7b-9ef2-13d4642b9414",
+      "name": "Calculate Target Tokens"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $today.toFormat('yyyy-MM-dd') }}"
+            },
+            {
+              "lookupColumn": "Doctor_Name",
+              "lookupValue": "={{ $json.currentDoctor }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Scheduled"
+            }
+          ]
+        },
+        "combineFilters": "and",
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "37b632fa-565f-48d1-8ce5-8127d8b7997d",
+      "name": "Find the Patients",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        6000,
+        2816
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Token_Number }}",
+                    "rightValue": "={{ $('Calculate Target Tokens').first().json.token30 }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    },
+                    "id": "572fd9b1-c7b6-4fbb-b4fd-7ceb61a88645"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "30 min Alert Msg"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0fdddf26-8daf-4db7-a3b8-266602296a94",
+                    "leftValue": "={{ $json.Token_Number }}",
+                    "rightValue": "={{ $('Calculate Target Tokens').first().json.token60 }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "60 min Alert Msg"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "95e549dc-918a-41d6-aedb-2fb5cefd87d0",
+                    "leftValue": "={{ $json.Token_Number }}",
+                    "rightValue": "={{ $('Calculate Target Tokens').first().json.token0 }}",
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Turn Arrived Msg"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        6208,
+        2816
+      ],
+      "id": "60e51a56-aae4-4622-9c35-e4c2e69cb82d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "=⚠️ သင့်အလှည့် ရောက်တော့မည်! > သင့်အလှည့်ရောက်ရန် မိနစ် ၃၀ ခန့်သာ လိုပါတော့တယ်။",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "4b07cfc1-8123-423a-9baf-953343adfcb9",
+      "name": "Send 30min Alert Msg",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6480,
+        2800
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "=⚠️ သင့်အလှည့် ရောက်တော့မည်! > သင့်အလှည့်ရောက်ရန် မိနစ် ၆၀ ခန့်သာ လိုပါတော့တယ်။",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "12d353f4-3a6f-4344-93b8-26a9d16dd5e2",
+      "name": "Send 60min Alert Msg",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6512,
+        2864
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.Chat_ID }}",
+        "text": "=🩺 သင့်အလှည့် ရောက်ပါပြီ!\n\n{{ $json.Full_Name }} ခင်ဗျာ/ရှင်၊ {{ $('Calculate Target Tokens').first().json.currentDoctor }} ထံသို့ ယခု ဝင်ရောက်ပြသနိုင်ပါပြီ။ ကျေးဇူးပြု၍ ဆရာဝန်အခန်းသို့ ဝင်ရောက်ပေးပါ။",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fbf8b4f6-6ccc-45ea-8152-4a16231c6a51",
+      "name": "Turn Arrived Msg",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6528,
+        3024
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-111111111111",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Booking Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are a hospital intent classifier. Read the user's message and reply with EXACTLY ONE WORD from this list, and nothing else:\n\nBOOKING (If they want to book, schedule, reschedule, cancel, or mention symptoms/doctors)\n\nQUEUE (If they ask about their wait time, token number, queue position, or turn)\n\nDo not include punctuation, greetings, or any other text. Only output the single capitalized word."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5248,
+        2400
+      ],
+      "id": "ca0d7201-b480-4802-b682-953890b6dc9e",
+      "name": "Indent Classifier"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5424,
+        2624
+      ],
+      "id": "b3e8c661-7c4a-4df2-960c-b6208e8e5091",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "DyAwuPuhsaOnIkU4",
+          "name": "Hopital AI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Booking Trigger').first().json.message.text }}",
+        "options": {
+          "systemMessage": "You are the Hospital Queue & Waiting Room Specialist. Your job is to tell patients their current wait time and queue status. Default language: Burmese (unless they speak English/Chinese).\n\nRULES:\n\nYou MUST use the CheckQueueStatus tool to get the live queue data.\n\nPass the patient's exact chatId into the tool.\n\nOnce the tool returns the data (Wait time, Token number, Missed turn status, etc.), translate it into a warm, natural, and empathetic response.\n\nIf the tool says QUEUE_NOT_STARTED, politely inform them the doctor has not started seeing patients yet.\n\nIf the tool says MISSED_TURN, politely explain they were skipped and must see the front desk.\n\nDo not use Markdown formatting (like asterisks or underscores)."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5952,
+        2224
+      ],
+      "id": "e3b9ede2-4d8e-44fc-ab69-13a43a000187",
+      "name": "Queue Specialist Agent"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5856,
+        2368
+      ],
+      "id": "4d5a85ff-8adf-443e-96b8-d9c5e63aee43",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "DyAwuPuhsaOnIkU4",
+          "name": "Hopital AI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Booking Trigger').first().json.message.text }}",
+        "options": {
+          "systemMessage": "=You are the specialized Hospital Booking AI Agent. Your ONLY job is to guide patients through booking or rescheduling appointments through natural, empathetic conversation.\nDefault Language is Burmese. But if the patient talks in English or Chinese, you must reply in that language.\n\nDoctor roster (name, specialty, available days, consultation hours, average consult time, max patients per day, and remaining slots for each bookable date):\n{{ $('Code in JavaScript').first().json.roster }}\n\nToday's date: {{ $('Code in JavaScript').first().json.today }} ({{ $('Code in JavaScript').first().json.todayWeekday }}).\n\nDate-to-weekday calendar for the next 14 days (authoritative — NEVER compute weekdays yourself, ONLY use this table):\n{{ $('Code in JavaScript').first().json.calendar }}\n\nYou need to collect ALL 3 of these fields before sending the appointment link:\n- patientName (Patient full name)\n- doctorName (must exactly match one name from the roster)\n- appointmentDate (YYYY-MM-DD; must be one of the doctor's bookable dates and NOT show FULL or 0 slots left)\n\nSTRICT RULES:\n- Smart Date Parsing (UX): Users will often type natural language dates like \"17\", \"မနက်ဖြန်\" (tomorrow), or \"17ရက်နေ့\". DO NOT force the user to type the exact \"YYYY-MM-DD\" format. You must intelligently match their natural input to the correct full date from the provided calendar (e.g., automatically convert \"17\" to \"2026-07-17\") quietly in the background.\n- Telegram Limits: Keep your responses CONCISE (under 1000 characters). NEVER dump the entire 14-day schedule for all doctors at once.\n- Greetings & Doctor List: When asking which doctor they want to consult, provide a short, bulleted list of the available doctors and their specialties ONLY (e.g., Dr. Name - Specialty). Do NOT show their available dates yet.\n- Schedule Validation & Display: ONLY show available dates AFTER the patient has selected a specific doctor. When showing dates, only list the available dates for that specific doctor to keep the message short.\n- Formatting: Do not use Markdown formatting like asterisks or underscores. Use standard dashes (-) or bullets (•) for lists.\n- Data Gathering: Collect fields gradually (1 or 2 at a time). NEVER ask the user to re-confirm information they already provided.\n- Summary: Once all 3 fields are gathered, present ONE clear summary with the patientName, doctorName, and the appointmentDate. Ask if it is correct.\n- Triggering the Link: If they confirm the summary, you MUST use the attached \"Send Prefilled Appointment Link\" tool. Do NOT type the tool's name or JSON in the chat. Pass patientName, doctorName, and appointmentDate to the tool. The tool will send them the pre-filled Appointment Registration form link via Telegram.\n- After the Link: Tell the patient to fill out the form. Once submitted, the system will create the appointment and send them a QR code for the nurse to scan for vital signs.\n- Safety: NEVER expose raw JSON, error objects, tool names, or technical details. Respond only in natural, friendly language."
+        }
+      },
+      "id": "999aa9b1-de7c-41e1-9ed5-43521c9ad96c",
+      "name": "Booking AI Agent (Orchestrator)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        5952,
+        2528
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "BOOKING",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "0007b6c0-9998-4ac3-99e6-360fb2089efc"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Booking"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d232bbfc-8cf0-4bc1-8871-3e46173389a6",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "QUEUE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Queue"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        5520,
+        2384
+      ],
+      "id": "b2b28682-10ff-4a73-8e89-c496d52446e3",
+      "name": "Route to Agents"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Booking Trigger').first().json.message.chat.id }}",
+        "text": "=<a href=\"https://docs.google.com/forms/d/e/1FAIpQLSfqrTiZ7s-HF6untgKG6s4XQ6EAaJRIBnuSI2LvL6EcvPLXWw/viewform?usp=pp_url&amp;entry.1887983752={{ encodeURIComponent($fromAI('patientName', 'Full name of the patient')) }}&amp;entry.1600812900={{ encodeURIComponent($fromAI('doctorName', 'Exact doctor name from the roster')) }}&amp;entry.384620257={{ encodeURIComponent($fromAI('appointmentDate', 'Appointment date in YYYY-MM-DD')) }}&amp;entry.1063399280={{ $('Telegram Booking Trigger').first().json.message.chat.id }}\">🗓️ ကြိုတင်စာရင်းသွင်းရန် (Book an Appointment)</a>\n",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegramTool",
+      "typeVersion": 1.2,
+      "position": [
+        6240,
+        2576
+      ],
+      "id": "0d5f897c-ebed-4631-bebc-4d5971055ecb",
+      "name": "Send Prefilled Appointment Link",
+      "webhookId": "5fbccbfc-c7f7-4c87-9a74-114f9a4d5d9e",
+      "credentials": {
+        "telegramApi": {
+          "id": "nCr3pckW7faWxUgS",
+          "name": "hospital_telegram_bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "10CwLC0xqqWZlIrES9q3pvb9N7frjXj-2ir71T6xP0hU"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Appointments"
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "id": "567847b1-b014-4ee8-9558-44514a20e46f",
+      "name": "Read Appointments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        4688,
+        2560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GTOnKzQi6CDRzrHA",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "663c6000-945d-4f14-b65e-13e5cc9418f6",
+      "name": "Merge Doctors + Appointments",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4976,
+        2512
+      ]
+    }
+  ],
+  "pinData": {
+    "Telegram Booking Trigger": [
+      {
+        "json": {
+          "update_id": 290627666,
+          "message": {
+            "message_id": 640,
+            "from": {
+              "id": 8455677812,
+              "is_bot": false,
+              "first_name": "Ye Htet",
+              "last_name": "Soe",
+              "username": "kiran_soe",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 8455677812,
+              "first_name": "Ye Htet",
+              "last_name": "Soe",
+              "username": "kiran_soe",
+              "type": "private"
+            },
+            "date": 1784213688,
+            "text": "အလှည့်ရောက်ပြီလား"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Booking Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter Bot Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Bot Messages": {
+      "main": [
+        [
+          {
+            "node": "Fetch Doctor Roster",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Doctor Roster": {
+      "main": [
+        [
+          {
+            "node": "Merge Doctors + Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Booking AI Agent (Orchestrator)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nurse Queue Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Queue Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Queue Session": {
+      "main": [
+        [
+          {
+            "node": "Increment Queue Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increment Queue Number": {
+      "main": [
+        [
+          {
+            "node": "Get Doctor's Average Time",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond With Queue Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 9 AM Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get Yesterday Appointments",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get 14 Days Ago Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Yesterday Appointments": {
+      "main": [
+        [
+          {
+            "node": "Split Yesterday Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get 14 Days Ago Appointments": {
+      "main": [
+        [
+          {
+            "node": "Split 14 Days Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Yesterday Appointments": {
+      "main": [
+        [
+          {
+            "node": "Send Medication Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split 14 Days Appointments": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Indent Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Booking AI Agent (Orchestrator)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow-up Message": {
+      "main": [
+        [
+          {
+            "node": "Mark As Followed Up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckQueueStatus": {
+      "ai_tool": [
+        [
+          {
+            "node": "Queue Specialist Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Doctor's Average Time": {
+      "main": [
+        [
+          {
+            "node": "Calculate Target Tokens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Target Tokens": {
+      "main": [
+        [
+          {
+            "node": "Find the Patients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find the Patients": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send 30min Alert Msg",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send 60min Alert Msg",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Turn Arrived Msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Indent Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Indent Classifier",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Queue Specialist Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Indent Classifier": {
+      "main": [
+        [
+          {
+            "node": "Route to Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Booking AI Agent (Orchestrator)": {
+      "main": [
+        [
+          {
+            "node": "Send Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Agents": {
+      "main": [
+        [
+          {
+            "node": "Booking AI Agent (Orchestrator)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Queue Specialist Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Queue Specialist Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Prefilled Appointment Link": {
+      "ai_tool": [
+        [
+          {
+            "node": "Booking AI Agent (Orchestrator)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Appointments": {
+      "main": [
+        [
+          {
+            "node": "Merge Doctors + Appointments",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Doctors + Appointments": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "174c59eb-db30-4de7-980c-dca4ff010f31",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c63e1e3f07ac87c82d219fef349d069c81140a0dd45a3c346253ac0488b9830"
+  },
+  "id": "6BnW66O7NQQ4XIfo",
+  "tags": []
+}
